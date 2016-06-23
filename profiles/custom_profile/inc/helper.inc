@@ -12,7 +12,7 @@
  *
  * @return bool
  */
-function rcopy($src, $dest){
+function custom_profile_rcopy($src, $dest){
   // If source is not a directory stop processing.
   if (!is_dir($src)) {
     return FALSE;
@@ -33,7 +33,7 @@ function rcopy($src, $dest){
       copy($f->getRealPath(), $dest . '/' . $f->getFilename());
     }
     elseif (!$f->isDot() && $f->isDir()) {
-      rcopy($f->getRealPath(), "$dest/$f");
+      custom_profile_rcopy($f->getRealPath(), "$dest/$f");
     }
   }
 
@@ -46,6 +46,6 @@ function rcopy($src, $dest){
  * @param $theme_name
  * @return mixed
  */
-function configure_theme_machine_name($theme_name) {
+function custom_profile_conf_theme_machine_name($theme_name) {
   return preg_replace('/\s+/', '_', drupal_strtolower($theme_name));
 }

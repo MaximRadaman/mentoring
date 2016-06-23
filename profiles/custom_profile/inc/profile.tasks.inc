@@ -7,9 +7,9 @@
 require_once 'helper.inc';
 
 /**
- * Form for site_theme_form install task.
+ * Form for custom_profile_site_theme_form install task.
  */
-function site_theme_form() {
+function custom_profile_site_theme_form() {
 
   $form['base_site_theme'] = [
     '#title' => st('Choose base site theme'),
@@ -48,15 +48,15 @@ function site_theme_form() {
 }
 
 /**
- * Create and enable sub-theme on site_theme_form install task form validation.
+ * Create and enable sub-theme on custom_profile_site_theme_form install task form validation.
  *
  * @param $form
  * @param $form_state
  * @throws \Exception
  */
-function site_theme_form_validate($form, &$form_state){
+function custom_profile_site_theme_form_validate($form, &$form_state) {
   if (!empty($form_state['values']['custom_site_theme'])) {
-    $custom_theme_machine_name = configure_theme_machine_name($form_state['values']['custom_site_theme']);
+    $custom_theme_machine_name = custom_profile_conf_theme_machine_name($form_state['values']['custom_site_theme']);
     $base_theme_dir = DRUPAL_ROOT . '/profiles/custom_profile/themes/custom/' . $form_state['values']['base_site_theme'];
     $custom_theme_dir = DRUPAL_ROOT . '/sites/all/themes/custom/' . $custom_theme_machine_name;
     switch ($form_state['values']['base_site_theme']) {
@@ -69,7 +69,7 @@ function site_theme_form_validate($form, &$form_state){
           if (!is_dir($custom_theme_dir)) {
             drupal_mkdir($custom_theme_dir);
           }
-          rcopy($base_theme_dir, $custom_theme_dir);
+          custom_profile_rcopy($base_theme_dir, $custom_theme_dir);
           rename($custom_theme_dir . '/bootstrap_custom.info', $custom_theme_dir . '/' . $custom_theme_machine_name . '.info');
 
           // Set base theme for new theme.
@@ -87,12 +87,12 @@ function site_theme_form_validate($form, &$form_state){
 }
 
 /**
- * Submit handler for site_theme_form.
+ * Submit handler for custom_profile_site_theme_form.
  */
-function site_theme_form_submit($form, &$form_state) {
+function custom_profile_site_theme_form_submit($form, &$form_state) {
   $new_theme = $form_state['values']['base_site_theme'];
   if (!empty($form_state['values']['custom_site_theme'])) {
-    $custom_theme_machine_name = configure_theme_machine_name($form_state['values']['custom_site_theme']);
+    $custom_theme_machine_name = custom_profile_conf_theme_machine_name($form_state['values']['custom_site_theme']);
     $new_theme = $custom_theme_machine_name;
   }
 
