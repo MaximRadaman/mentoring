@@ -11,7 +11,7 @@ require_once 'inc/profile.tasks.inc';
  */
 function custom_profile_install_tasks() {
   $tasks = [
-    'site_theme_form' => [
+    'custom_profile_site_theme_form' => [
       'display_name' => st('Choose base site theme'),
       'display' => TRUE,
       'type' => 'form',
