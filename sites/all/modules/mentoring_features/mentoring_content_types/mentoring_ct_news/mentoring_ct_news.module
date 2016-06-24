@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Mentoring: CT: News feature.
+ */
+
+include_once 'mentoring_ct_news.features.inc';

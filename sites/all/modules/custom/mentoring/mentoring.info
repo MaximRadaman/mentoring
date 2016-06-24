@@ -1,0 +1,5 @@
+name = Mentoring
+description = "Mentoring tasks module"
+package = Mentoring
+
+core = 7.x
