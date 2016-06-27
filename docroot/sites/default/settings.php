@@ -584,10 +584,6 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
  */
 # $conf['theme_debug'] = TRUE;
 
-if (file_exists('/var/www/site-php')) {
-  require '/var/www/site-php/mentoring/mentoring-settings.inc';
-}
-
 $databases = array (
   'default' =>
     array (
@@ -600,6 +596,10 @@ $databases = array (
         ),
     ),
 );
+
+if (file_exists('/var/www/site-php')) {
+  require '/var/www/site-php/mentoring/mentoring-settings.inc';
+}
 
 if (file_exists(DRUPAL_ROOT . '/' . conf_path() . '/settings.local.php')) {
   include DRUPAL_ROOT . '/' . conf_path() . '/settings.local.php';
