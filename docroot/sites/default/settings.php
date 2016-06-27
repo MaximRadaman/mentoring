@@ -212,19 +212,6 @@
  *   );
  * @endcode
  */
-$databases = array (
-  'default' =>
-  array (
-    'default' =>
-    array (
-      'database' => 'mentoringdqesa82hd2',
-      'username' => 's170909',
-      'password' => 'k7qWYJLTvzW8soo',
-      'host' => '127.0.0.1',
-      'driver' => 'mysql',
-    ),
-  ),
-);
 
 /**
  * Access control for update.php script.
@@ -600,6 +587,23 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
 if (file_exists('/var/www/site-php')) {
   require '/var/www/site-php/mentoring/mentoring-settings.inc';
 }
+
+$databases = array (
+  'default' =>
+    array (
+      'default' =>
+        array (
+          'database' => 'mentoringdqesa82hd2',
+          'username' => 's170909',
+          'password' => 'k7qWYJLTvzW8soo',
+          'host' => 'localhost',
+          'driver' => 'mysql',
+        ),
+    ),
+);
+
+
+
 
 if (file_exists(DRUPAL_ROOT . '/' . conf_path() . '/settings.local.php')) {
   include DRUPAL_ROOT . '/' . conf_path() . '/settings.local.php';
