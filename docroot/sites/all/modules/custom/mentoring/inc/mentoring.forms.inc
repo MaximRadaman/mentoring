@@ -4,30 +4,32 @@
  * Mentoring forms and validation.
  */
 
+const MIN_VACATION_DAYS = 14;
+
 /**
  * Contacts form.
  */
-function mentoring_contacts_form() {
-  $form = [
-    'name' => [
-      '#type' => 'textfield',
-      '#title' => t('Name'),
-      '#size' => 50,
-      '#maxlength' => 20,
-      '#required' => TRUE,
-    ],
-    'email' => [
-      '#type' => 'textfield',
-      '#title' => t('Email'),
-      '#size' => 50,
-      '#maxlength' => 30,
-      '#required' => TRUE,
-    ],
-    'subject' => [
-      '#type' => 'textarea',
-      '#title' => t('Subject'),
-      '#required' => TRUE,
-    ]
+function mentoring_contacts_form($form, &$form_state) {
+  $form['name'] = [
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#size' => 50,
+    '#maxlength' => 20,
+    '#required' => TRUE,
+  ];
+
+  $form['email'] = [
+    '#type' => 'textfield',
+    '#title' => t('Email'),
+    '#size' => 50,
+    '#maxlength' => 30,
+    '#required' => TRUE,
+  ];
+
+  $form['subject'] = [
+    '#type' => 'textarea',
+    '#title' => t('Subject'),
+    '#required' => TRUE,
   ];
 
   $form['submit'] = [
@@ -51,17 +53,15 @@ function mentoring_contacts_form_submit($form, &$form_state) {
 /**
  * Vacation form.
  */
-function mentoring_vacation_form() {
-  $form = [
-    'vacation_days' => [
-      '#type' => 'textfield',
-      '#title' => t('Min number of vacation days'),
-      '#default_value' => variable_get('vacation_days', 14),
-      '#size' => 2,
-      '#maxlength' => 2,
-      '#description' => t("The minimum number of vacation days during year."),
-      '#required' => TRUE,
-    ]
+function mentoring_vacation_form($form, &$form_state) {
+  $form['vacation_days'] = [
+    '#type' => 'textfield',
+    '#title' => t('Min number of vacation days'),
+    '#default_value' => variable_get('vacation_days', MIN_VACATION_DAYS),
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#description' => t("The minimum number of vacation days during year."),
+    '#required' => TRUE,
   ];
 
   return system_settings_form($form);
@@ -72,6 +72,6 @@ function mentoring_vacation_form() {
  */
 function mentoring_vacation_form_validate($form, $form_state) {
   if (!is_numeric($form_state['values']['vacation_days']) || $form_state['values']['vacation_days'] < 14) {
-    form_set_error('vacation_days', t('14 days is a minimum for vacation.'));
+    form_set_error('vacation_days', t('@min_vacation_days days is a minimum for vacation.', ['@min_vacation_days' => MIN_VACATION_DAYS]));
   }
 }
