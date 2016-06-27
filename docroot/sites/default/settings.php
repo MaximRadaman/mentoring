@@ -584,19 +584,6 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
  */
 # $conf['theme_debug'] = TRUE;
 
-$databases = array (
-  'default' =>
-    array (
-      'default' =>
-        array (
-          'database' => 'mentoringdqesa82hd2',
-          'username' => 's170909',
-          'password' => 'k7qWYJLTvzW8soo',
-          'host' => '127.0.0.1',
-        ),
-    ),
-);
-
 if (file_exists('/var/www/site-php')) {
   require '/var/www/site-php/mentoring/mentoring-settings.inc';
 }
