@@ -596,14 +596,10 @@ $databases = array (
           'database' => 'mentoringdqesa82hd2',
           'username' => 's170909',
           'password' => 'k7qWYJLTvzW8soo',
-          'host' => 'localhost',
-          'driver' => 'mysql',
+          'host' => '127.0.0.1',
         ),
     ),
 );
-
-
-
 
 if (file_exists(DRUPAL_ROOT . '/' . conf_path() . '/settings.local.php')) {
   include DRUPAL_ROOT . '/' . conf_path() . '/settings.local.php';
