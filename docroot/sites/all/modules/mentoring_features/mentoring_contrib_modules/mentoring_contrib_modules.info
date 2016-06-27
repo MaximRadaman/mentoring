@@ -1,0 +1,10 @@
+name = Mentoring: Contrib modules
+description = Contrib modules that are not enabled or installed by custom profile.
+core = 7.x
+package = Mentoring
+version = 7.x-1.0
+dependencies[] = diff
+dependencies[] = views_content
+dependencies[] = views_ui
+dependencies[] = entityreference
+features[features_api][] = api:2

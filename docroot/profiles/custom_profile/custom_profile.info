@@ -1,0 +1,59 @@
+name = Custom profile
+description = Profile with responsive theme and often used modules
+
+core = "7.x"
+
+exclusive = TRUE
+
+; Dependencies
+; Administration
+dependencies[] = admin_menu
+dependencies[] = module_filter
+; Chaos tool suite
+dependencies[] = ctools
+dependencies[] = page_manager
+; Core
+dependencies[] = block
+dependencies[] = color
+dependencies[] = comment
+dependencies[] = contextual
+dependencies[] = dashboard
+dependencies[] = help
+dependencies[] = image
+dependencies[] = list
+dependencies[] = menu
+dependencies[] = number
+dependencies[] = options
+dependencies[] = path
+dependencies[] = taxonomy
+dependencies[] = dblog
+dependencies[] = search
+dependencies[] = shortcut
+dependencies[] = field_ui
+dependencies[] = file
+dependencies[] = rdf
+; Development
+dependencies[] = devel
+;; Variable
+dependencies[] = variable
+dependencies[] = l10n_update
+; Multilingual
+; Multilingual - Internationalization
+dependencies[] = i18n
+;; Other
+dependencies[] = entity
+dependencies[] = token
+dependencies[] = libraries
+dependencies[] = pathauto
+dependencies[] = strongarm
+;; Panels
+dependencies[] = panels
+dependencies[] = panels_everywhere
+;; User interface
+dependencies[] = jquery_update
+;; Views
+dependencies[] = views
+;; Features
+dependencies[] = features
+
+

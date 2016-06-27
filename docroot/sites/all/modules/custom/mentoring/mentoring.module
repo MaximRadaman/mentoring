@@ -1,0 +1,165 @@
+<?php
+/**
+ * @file
+ * Various types of menu.
+ */
+
+const ADMINISTRATOR_RID = 3;
+const MODERATOR_RID = 4;
+
+/**
+ * Implements hook_menu().
+ */
+function mentoring_menu() {
+  $items['news'] = [
+    'title' => 'All news',
+    'page callback' => '_mentoring_news_page',
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.page_callbacks.inc',
+    'type' => MENU_NORMAL_ITEM,
+
+  ];
+  $items['news/%'] = [
+    'title callback' => '_mentoring_news_dynamic_title_callback',
+    'title arguments' => [1],
+    'page callback' => '_mentoring_news_dynamic_title_page',
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.page_callbacks.inc',
+    'type' => MENU_CALLBACK,
+  ];
+  $items['greeting/%/%'] = [
+    'title' => 'Greeting by Fist name and Last name',
+    'page callback' => '_mentoring_greeting_page',
+    'page arguments' => [1, 2],
+    'access arguments' => ['access content'],
+    'file' => 'inc/mentoring.page_callbacks.inc',
+    'type' => MENU_CALLBACK,
+  ];
+  $items['user/%user/news'] = [
+    'title' => 'Display all news published by user',
+    'page callback' => '_mentoring_user_published_news',
+    'page arguments' => [1],
+    'access arguments' => ['access content'],
+    'file' => 'inc/mentoring.page_callbacks.inc',
+    'type' => MENU_LOCAL_TASK,
+  ];
+  $items['contacts'] = [
+    'title' => 'Contact form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_contacts_form'],
+    'access arguments' => ['access content'],
+    'file' => 'inc/mentoring.forms.inc',
+    'type' => MENU_SUGGESTED_ITEM ,
+  ];
+  $items['admin/config/vacation'] = [
+    'title' => 'Set min number of days for vacation',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_vacation_form'],
+    'access arguments' => ['administer site configuration'],
+    'file' => 'inc/mentoring.forms.inc',
+  ];
+  $items['moderators'] = [
+    'title' => 'Moderators',
+    'page callback' => '_mentoring_moderators_page',
+    'access arguments' => ['access content'],
+    'file' => 'inc/mentoring.page_callbacks.inc',
+  ];
+  $items['moderators/view'] = [
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  ];
+  $items['moderators/docs'] = [
+    'title' => 'Moderators documents',
+    'page callback' => '_mentoring_moderators_docs',
+    'access callback' => ['mentoring_moderators_docs_view_access'],
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+    'file' => 'inc/mentoring.page_callbacks.inc',
+  ];
+  $items['moderators/add'] = [
+    'title' => 'Create moderator',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['user_register_form'],
+    'access arguments' => array('administer users'),
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'inc/mentoring.page_callbacks.inc',
+  ];
+  $items['delivery/json'] = [
+    'title' => 'A Page',
+    'page callback' => '_mentoring_page_delivery_json',
+    'access callback' => TRUE,
+    'delivery callback' => '_mentoring_delivery_callback',
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/mentoring.page_callbacks.inc',
+  ];
+
+  return $items;
+}
+
+/**
+ * Implements hook_url_inbound_alter().
+ */
+function mentoring_url_inbound_alter(&$path, $original_path, $path_language) {
+  if (preg_match('@^myblog/([0-9]+)$@', $path, $matches)) {
+    $path = 'node/' . $matches[1];
+  }
+}
+
+/**
+ * Implements hook_url_outbound_alter().
+ */
+function mentoring_url_outbound_alter(&$path, &$options, $original_path) {
+  if (preg_match('@^node/([0-9]+)$@', $path, $matches)) {
+    $path = 'myblog/' . $matches[1];
+
+    // Drupal's alias may override our path.
+    // Set the 'alias' option to prevent it.
+    $options['alias'] = TRUE;
+  }
+}
+
+/**
+ * Title callback for /news/%.
+ */
+function _mentoring_news_dynamic_title_callback($title) {
+  return t('Awesome @title', ['@title' => $title]);
+}
+
+/**
+ * Access callback for viewing moderators docs.
+ */
+function mentoring_moderators_docs_view_access() {
+  return user_access('access content') && (user_has_role(MODERATOR_RID) || user_has_role(ADMINISTRATOR_RID));
+}
+
+/**
+ * Custom delivery callback.
+ */
+function _mentoring_delivery_callback($page_callback_result) {
+  $content_type = drupal_get_http_header('Content-Type');
+
+  if (is_null($content_type)) {
+    drupal_add_http_header('Content-Type', 'text/html; charset=utf-8');
+  }
+
+  // Send appropriate HTTP-Header for browsers and search engines.
+  global $language;
+  drupal_add_http_header('Content-Language', $language->language);
+
+  switch ($content_type) {
+    case 'application/json':
+      print json_encode($page_callback_result);
+      break;
+
+    case 'application/xml':
+      print '<?xml version="1.0" encoding="UTF-8"><root>' . render($page_callback_result) . '</root>';
+      break;
+
+    default:
+      print '<html><head></head><body>';
+      print render($page_callback_result);
+      print '</body></html>';
+  }
+  drupal_page_footer();
+}
