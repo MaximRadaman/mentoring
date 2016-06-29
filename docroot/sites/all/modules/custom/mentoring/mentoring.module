@@ -83,7 +83,6 @@ function mentoring_menu() {
     'page arguments' => ['user_register_form'],
     'access arguments' => array('administer users'),
     'type' => MENU_LOCAL_ACTION,
-    'file' => 'inc/mentoring.page_callbacks.inc',
   ];
   $items['delivery/json'] = [
     'title' => 'A Page',
@@ -92,6 +91,27 @@ function mentoring_menu() {
     'delivery callback' => '_mentoring_delivery_callback',
     'type' => MENU_CALLBACK,
     'file' => 'inc/mentoring.page_callbacks.inc',
+  ];
+  $items['forms/personal'] = [
+    'title' => 'Personal data',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_personal_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.forms.inc',
+  ];
+  $items['forms/base-ajax'] = [
+    'title' => 'Base ajax form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_base_ajax_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.forms.inc',
+  ];
+  $items['forms/address-form'] = [
+    'title' => 'Ajax graceful degradation address form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_ajax_graceful_degradation_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.forms.inc',
   ];
 
   return $items;
