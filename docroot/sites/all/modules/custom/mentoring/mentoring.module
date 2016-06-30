@@ -113,6 +113,28 @@ function mentoring_menu() {
     'access callback' => TRUE,
     'file' => 'inc/mentoring.forms.inc',
   ];
+  $items['forms/ajax-multistep'] = [
+    'title' => 'Multistep form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_ajax_multistep_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.forms.inc',
+  ];
+  $items['forms/ajax-add-more'] = [
+    'title' => 'Ajax add more node autocomplete form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_ajax_add_more_node_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.forms.inc',
+  ];
+  $items['nodes/published/autocomplete/%'] = [
+    'title' => 'Published nodes autocomplete',
+    'page callback' => 'mentoring_nodes_published_autocomplete',
+    'page arguments' => [3],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.page_callbacks.inc',
+    'type' => MENU_CALLBACK,
+  ];
 
   return $items;
 }
