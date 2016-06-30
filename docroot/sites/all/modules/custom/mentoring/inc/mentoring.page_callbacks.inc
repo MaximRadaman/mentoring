@@ -55,3 +55,29 @@ function _mentoring_page_delivery_json() {
   drupal_add_http_header('Content-Type', 'application/json');
   return array(t('The current timestamp is') . ' : ' . time());
 }
+
+/**
+ * Page callback for nodes/published/autocomplete.
+ */
+function mentoring_nodes_published_autocomplete($exclude, $string) {
+  $matches = [];
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid', 'title'));
+  $query->condition('n.status', 1);
+  $query->condition('n.title', '%' . db_like($string) . '%', 'LIKE');
+
+  if ($exclude) {
+    $exclude_nids = explode('-', $exclude);
+    $query->condition('n.nid', $exclude_nids, 'NOT IN');
+  }
+
+  $nodes = $query->execute()->fetchAll();
+
+  foreach ($nodes as $node) {
+    $matches[check_plain($node->title) . '(' . $node->nid . ')'] = check_plain($node->title) . '(' . $node->nid . ')';
+  }
+
+  $selected_nids[] = $node->nid;
+
+  drupal_json_output($matches);
+}
