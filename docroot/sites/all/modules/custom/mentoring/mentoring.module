@@ -135,6 +135,26 @@ function mentoring_menu() {
     'file' => 'inc/mentoring.page_callbacks.inc',
     'type' => MENU_CALLBACK,
   ];
+  $items['last-node-page'] = [
+    'title' => 'Click link to get last node',
+    'page callback' => 'mentoling_ajax_link_last_node_page',
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.page_callbacks.inc',
+    'type' => MENU_CALLBACK,
+  ];
+  $items['ajax/last-node'] = [
+    'title' => 'Get last published node',
+    'page callback' => 'mentoling_ajax_link_last_node',
+    'access arguments' => ['access content'],
+    'file' => 'inc/mentoring.page_callbacks.inc',
+  ];
+  $items['lottery'] = [
+    'title' => 'Try to win in lottery',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_lottery_ticket_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.forms.inc',
+  ];
 
   return $items;
 }
