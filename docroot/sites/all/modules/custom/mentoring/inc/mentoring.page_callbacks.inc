@@ -81,3 +81,43 @@ function mentoring_nodes_published_autocomplete($exclude, $string) {
 
   drupal_json_output($matches);
 }
+
+/**
+ * Page callback for 'last-node'.
+ */
+function mentoling_ajax_link_last_node($type = 'ajax') {
+  if ($type == 'ajax') {
+    $last_node = drupal_render(node_view(current(node_get_recent(1))));
+    ajax_deliver([
+      '#type' => 'ajax',
+      '#commands' => [
+        ajax_command_html('#last-node', $last_node),
+        mentoring_ajax_command_reload(5000),
+      ],
+    ]);
+  }
+  else {
+    drupal_set_message('Turn Javascript');
+    drupal_goto(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '<front>');
+  }
+}
+
+/**
+ * Page callback for 'last-node-page'.
+ */
+function mentoling_ajax_link_last_node_page() {
+  drupal_add_library('system', 'drupal.ajax');
+  drupal_add_library('system', 'jquery.form');
+  drupal_add_js(drupal_get_path('module', 'mentoring') . '/js/mentoring.js');
+  return '<div id="last-node"></div>' . l(t('Last published node'), 'ajax/last-node/nojs', ['attributes' => ['class' => 'use-ajax']]);
+}
+
+/**
+ * Ajax command to reload page after offset.
+ */
+function mentoring_ajax_command_reload($offset = 5000) {
+  return [
+    'command' => 'mentaringReload',
+    'mentoringOffset' => $offset,
+  ];
+}

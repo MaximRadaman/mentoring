@@ -632,3 +632,54 @@ function mentoring_ajax_add_more_node_form_submit($form, &$form_state) {
   }
   drupal_set_message($msg);
 }
+
+/**
+ * Mentoring_lottery_ticket_form form.
+ */
+function mentoring_lottery_ticket_form($form, &$form_state) {
+
+  $form['#prefix'] = '<div id="lottery-form-wrap">';
+  $form['#suffix'] = '</div>';
+  $form['name'] = [
+    '#type' => 'textfield',
+    '#title' => t('Enter your First Name'),
+    '#required' => TRUE,
+  ];
+
+  $form['win_lottery'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Try to win Lottery without ticket'),
+    '#prefix' => '<div id="win-lottery-attempt">',
+    '#suffix' => '</div>',
+    '#ajax' => [
+      'wrapper' => 'lottery-form-wrap',
+      'callback' => 'mentoring_win_lottery_ajax_callback',
+    ],
+    '#default_value' => !empty($form_state['values']['win_lottery']) ? $form_state['values']['win_lottery'] : FALSE,
+  ];
+
+  $form['submit'] = [
+    '#type' => 'submit',
+    '#value' => t('Buy Lottery ticket'),
+  ];
+
+  return $form;
+}
+
+/**
+ * Ajax callback on form element win_lottery in mentoring_lottery_ticket_form.
+ */
+function mentoring_win_lottery_ajax_callback(&$form, &$form_state) {
+  $commands = [];
+  if ($form_state['values']['name'] && $form_state['values']['name'] == 'Max') {
+    $commands[] = ajax_command_replace('#lottery-form-wrap', t('Congratulations!!! You win!!!'));
+  }
+  else {
+    $commands[] = ajax_command_replace('#win-lottery-attempt', drupal_render($form['win_lottery']));
+    $commands[] = ajax_command_append('#win-lottery-attempt', t('Attempt failed. You should buy a ticket.'));
+  }
+  return [
+    '#type' => 'ajax',
+    '#commands' => $commands,
+  ];
+}
