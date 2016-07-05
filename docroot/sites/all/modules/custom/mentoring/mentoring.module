@@ -136,21 +136,21 @@ function mentoring_menu() {
     'type' => MENU_CALLBACK,
   ];
   $items['last-node-page'] = [
-    'title' => 'Click link to get last node, after 5 sec custom reload',
+    'title' => 'Click link to get last node, after 5 sec custom reload (nojs/ajax)',
     'page callback' => 'mentoling_ajax_link_last_node_page',
     'access callback' => TRUE,
     'file' => 'inc/mentoring.page_callbacks.inc',
   ];
   $items['node/last-node/nojs'] = [
-    'title' => 'Get last published node (nojs/ajax)',
+    'title' => 'Get last published node',
     'page callback' => 'mentoling_ajax_link_last_node',
     'page arguments' => array(2),
     'access arguments' => ['access content'],
+    'type' => MENU_CALLBACK,
     'file' => 'inc/mentoring.page_callbacks.inc',
   ];
   $items['node/last-node/ajax'] = [
     'delivery callback' => 'ajax_deliver',
-    'type' => MENU_CALLBACK,
   ] + $items['node/last-node/nojs'];
   $items['lottery'] = [
     'title' => 'Try to win in lottery',
