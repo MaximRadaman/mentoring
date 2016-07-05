@@ -85,16 +85,17 @@ function mentoring_nodes_published_autocomplete($exclude, $string) {
 /**
  * Page callback for 'last-node'.
  */
-function mentoling_ajax_link_last_node($type = 'ajax') {
+function mentoling_ajax_link_last_node($type) {
   if ($type == 'ajax') {
-    $last_node = drupal_render(node_view(current(node_get_recent(1))));
-    ajax_deliver([
+    $last_node = node_view(current(node_get_recent(1)));
+    $last_node = drupal_render($last_node);
+    return [
       '#type' => 'ajax',
       '#commands' => [
         ajax_command_html('#last-node', $last_node),
         mentoring_ajax_command_reload(5000),
       ],
-    ]);
+    ];
   }
   else {
     drupal_set_message('Turn Javascript');
@@ -109,7 +110,7 @@ function mentoling_ajax_link_last_node_page() {
   drupal_add_library('system', 'drupal.ajax');
   drupal_add_library('system', 'jquery.form');
   drupal_add_js(drupal_get_path('module', 'mentoring') . '/js/mentoring.js');
-  return '<div id="last-node"></div>' . l(t('Last published node'), 'ajax/last-node/nojs', ['attributes' => ['class' => 'use-ajax']]);
+  return '<div id="last-node"></div>' . l(t('Last published node'), 'node/last-node/nojs', ['attributes' => ['class' => 'use-ajax']]);
 }
 
 /**

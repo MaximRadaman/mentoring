@@ -637,7 +637,6 @@ function mentoring_ajax_add_more_node_form_submit($form, &$form_state) {
  * Mentoring_lottery_ticket_form form.
  */
 function mentoring_lottery_ticket_form($form, &$form_state) {
-
   $form['#prefix'] = '<div id="lottery-form-wrap">';
   $form['#suffix'] = '</div>';
   $form['name'] = [
@@ -657,6 +656,9 @@ function mentoring_lottery_ticket_form($form, &$form_state) {
     ],
     '#default_value' => !empty($form_state['values']['win_lottery']) ? $form_state['values']['win_lottery'] : FALSE,
   ];
+  if (isset($form_state['values']['win_lottery']) && $form_state['values']['win_lottery']) {
+    $form['win_lottery']['#disabled'] = TRUE;
+  }
 
   $form['submit'] = [
     '#type' => 'submit',
