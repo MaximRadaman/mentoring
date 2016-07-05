@@ -265,7 +265,7 @@ $drupal_hash_salt = 'GCpR00sninvxQAOjmfMvN-nFmrRo4qa6CxgZysqh8bg';
  * It is not allowed to have a trailing slash; Drupal will add it
  * for you.
  */
-$base_url = 'http://profile.local';  // NO trailing slash!
+#$base_url = 'http://profile.local';  // NO trailing slash!
 
 /**
  * PHP settings:
