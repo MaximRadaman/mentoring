@@ -17,7 +17,6 @@ function mentoring_menu() {
     'access callback' => TRUE,
     'file' => 'inc/mentoring.page_callbacks.inc',
     'type' => MENU_NORMAL_ITEM,
-
   ];
   $items['news/%'] = [
     'title callback' => '_mentoring_news_dynamic_title_callback',
@@ -85,11 +84,10 @@ function mentoring_menu() {
     'type' => MENU_LOCAL_ACTION,
   ];
   $items['delivery/json'] = [
-    'title' => 'A Page',
+    'title' => 'Return Json',
     'page callback' => '_mentoring_page_delivery_json',
     'access callback' => TRUE,
     'delivery callback' => '_mentoring_delivery_callback',
-    'type' => MENU_CALLBACK,
     'file' => 'inc/mentoring.page_callbacks.inc',
   ];
   $items['forms/personal'] = [
