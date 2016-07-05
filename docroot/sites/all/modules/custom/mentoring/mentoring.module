@@ -119,7 +119,7 @@ function mentoring_menu() {
     'file' => 'inc/mentoring.forms.inc',
   ];
   $items['forms/ajax-add-more'] = [
-    'title' => 'Ajax add more node autocomplete form',
+    'title' => 'Ajax add more node autocomplete form (exclude selected from next autocomplete, validation on none autocomplete value)',
     'page callback' => 'drupal_get_form',
     'page arguments' => ['mentoring_ajax_add_more_node_form'],
     'access callback' => TRUE,

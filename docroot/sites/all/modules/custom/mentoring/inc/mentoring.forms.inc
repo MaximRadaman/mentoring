@@ -528,11 +528,8 @@ function mentoring_ajax_add_more_node_form($form, &$form_state) {
     $autocomplete_path = 'nodes/published/autocomplete/0';
     if ($i > 0 && $selected_nodes = $form_state['values']['nodes_fieldset']['node']) {
       $exclude_nids = [];
-      foreach ($selected_nodes as $key => $node) {
-        $result = preg_match('/\((\d+)\)$/', $node, $matches);
-        if ($result) {
-          $exclude_nids[] = $matches[$result];
-        }
+      foreach ($selected_nodes as $key => $nid) {
+        $exclude_nids[] = $nid;
       }
       if ($exclude_nids) {
         $autocomplete_path = 'nodes/published/autocomplete/' . implode('-', $exclude_nids);
