@@ -1,0 +1,35 @@
+<?php
+/**
+ * @file
+ * Testing block api and batch api functions.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function mentoring_block_menu() {
+  $items['admin/config/block-visibility'] = [
+    'title' => 'Configure blocks visibility',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_block_visibility_form'],
+    'access arguments' => ['administer site configuration'],
+    'file' => 'inc/mentoring_block.inc',
+  ];
+
+  return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function mentoring_block_form_block_admin_display_form_alter(&$form, &$form_state) {
+  if ($blocks = variable_get('mentoring_block_hidden_blocks', [])) {
+    foreach ($blocks as $key => $title) {
+      $matches = [];
+      $result = preg_match('/\((.+)\)$/', $title, $matches);
+      if ($matches[$result]) {
+        unset($form['blocks'][$matches[1]]);
+      }
+    }
+  }
+}

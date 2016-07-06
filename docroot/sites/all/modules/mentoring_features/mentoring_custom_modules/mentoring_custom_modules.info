@@ -1,0 +1,7 @@
+name = Mentoring: Custom modules
+core = 7.x
+package = Mentoring
+version = 7.x-1.0
+dependencies[] = mentoring
+dependencies[] = mentoring_block
+features[features_api][] = api:2
