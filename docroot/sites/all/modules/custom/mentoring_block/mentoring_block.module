@@ -99,3 +99,10 @@ function mentoring_block_block_view($delta = '') {
   }
   return $block;
 }
+
+/**
+ * Implements hook_block_view_MODULE_DELTA_alter().
+ */
+function mentoring_block_block_view_search_form_alter(&$data, $block) {
+  $block->title = t('Add Search title on hook_block_view_MODULE_DELTA_alter.');
+}
