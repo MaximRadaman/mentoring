@@ -1,0 +1,9 @@
+/*
+ * @file
+ * CSS for mentoring.
+ */
+
+/* Hides the next button when not degrading to non-javascript browser */
+html.js .next-button {
+    display: none;
+}

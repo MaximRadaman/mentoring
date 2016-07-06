@@ -7,10 +7,6 @@
 const ADMINISTRATOR_RID = 3;
 const MODERATOR_RID = 4;
 
-require_once 'inc/mentoring.page_callbacks.inc';
-require_once 'inc/mentoring.access_callbacks.inc';
-require_once 'inc/mentoring.title_callbacks.inc';
-
 /**
  * Implements hook_menu().
  */
@@ -19,13 +15,15 @@ function mentoring_menu() {
     'title' => 'All news',
     'page callback' => '_mentoring_news_page',
     'access callback' => TRUE,
+    'file' => 'inc/mentoring.page_callbacks.inc',
     'type' => MENU_NORMAL_ITEM,
   ];
   $items['news/%'] = [
-    'title callback' => '_mentoring_news_dynamic_title',
+    'title callback' => '_mentoring_news_dynamic_title_callback',
     'title arguments' => [1],
     'page callback' => '_mentoring_news_dynamic_title_page',
     'access callback' => TRUE,
+    'file' => 'inc/mentoring.page_callbacks.inc',
     'type' => MENU_CALLBACK,
   ];
   $items['greeting/%/%'] = [
@@ -33,6 +31,7 @@ function mentoring_menu() {
     'page callback' => '_mentoring_greeting_page',
     'page arguments' => [1, 2],
     'access arguments' => ['access content'],
+    'file' => 'inc/mentoring.page_callbacks.inc',
     'type' => MENU_CALLBACK,
   ];
   $items['user/%user/news'] = [
@@ -40,6 +39,7 @@ function mentoring_menu() {
     'page callback' => '_mentoring_user_published_news',
     'page arguments' => [1],
     'access arguments' => ['access content'],
+    'file' => 'inc/mentoring.page_callbacks.inc',
     'type' => MENU_LOCAL_TASK,
   ];
   $items['contacts'] = [
@@ -47,6 +47,7 @@ function mentoring_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => ['mentoring_contacts_form'],
     'access arguments' => ['access content'],
+    'file' => 'inc/mentoring.forms.inc',
     'type' => MENU_SUGGESTED_ITEM ,
   ];
   $items['admin/config/vacation'] = [
@@ -54,11 +55,13 @@ function mentoring_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => ['mentoring_vacation_form'],
     'access arguments' => ['administer site configuration'],
+    'file' => 'inc/mentoring.forms.inc',
   ];
   $items['moderators'] = [
     'title' => 'Moderators',
     'page callback' => '_mentoring_moderators_page',
     'access arguments' => ['access content'],
+    'file' => 'inc/mentoring.page_callbacks.inc',
   ];
   $items['moderators/view'] = [
     'title' => 'View',
@@ -71,6 +74,7 @@ function mentoring_menu() {
     'access callback' => ['mentoring_moderators_docs_view_access'],
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
+    'file' => 'inc/mentoring.page_callbacks.inc',
   ];
   $items['moderators/add'] = [
     'title' => 'Create moderator',
@@ -80,11 +84,78 @@ function mentoring_menu() {
     'type' => MENU_LOCAL_ACTION,
   ];
   $items['delivery/json'] = [
-    'title' => 'A Page',
+    'title' => 'Return Json',
     'page callback' => '_mentoring_page_delivery_json',
     'access callback' => TRUE,
-    'delivery callback' => '_mentoring_page_delivery',
+    'delivery callback' => '_mentoring_delivery_callback',
+    'file' => 'inc/mentoring.page_callbacks.inc',
+  ];
+  $items['forms/personal'] = [
+    'title' => 'Personal data (Form #states)',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_personal_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.forms.inc',
+  ];
+  $items['forms/base-ajax'] = [
+    'title' => 'Base ajax form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_base_ajax_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.forms.inc',
+  ];
+  $items['forms/address-form'] = [
+    'title' => 'Ajax graceful degradation address form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_ajax_graceful_degradation_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.forms.inc',
+  ];
+  $items['forms/ajax-multistep'] = [
+    'title' => 'Multistep form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_ajax_multistep_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.forms.inc',
+  ];
+  $items['forms/ajax-add-more'] = [
+    'title' => 'Ajax add more node autocomplete form (exclude selected from next autocomplete, validation on none autocomplete value)',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_ajax_add_more_node_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.forms.inc',
+  ];
+  $items['nodes/published/autocomplete/%'] = [
+    'title' => 'Published nodes autocomplete',
+    'page callback' => 'mentoring_nodes_published_autocomplete',
+    'page arguments' => [3],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.page_callbacks.inc',
     'type' => MENU_CALLBACK,
+  ];
+  $items['last-node-page'] = [
+    'title' => 'Click link to get last node, after 5 sec custom reload (nojs/ajax)',
+    'page callback' => 'mentoling_ajax_link_last_node_page',
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.page_callbacks.inc',
+  ];
+  $items['node/last-node/nojs'] = [
+    'title' => 'Get last published node',
+    'page callback' => 'mentoling_ajax_link_last_node',
+    'page arguments' => array(2),
+    'access arguments' => ['access content'],
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/mentoring.page_callbacks.inc',
+  ];
+  $items['node/last-node/ajax'] = [
+    'delivery callback' => 'ajax_deliver',
+  ] + $items['node/last-node/nojs'];
+  $items['lottery'] = [
+    'title' => 'Try to win in lottery',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_lottery_ticket_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring.forms.inc',
   ];
 
   return $items;
@@ -110,4 +181,49 @@ function mentoring_url_outbound_alter(&$path, &$options, $original_path) {
     // Set the 'alias' option to prevent it.
     $options['alias'] = TRUE;
   }
+}
+
+/**
+ * Title callback for /news/%.
+ */
+function _mentoring_news_dynamic_title_callback($title) {
+  return t('Awesome @title', ['@title' => $title]);
+}
+
+/**
+ * Access callback for viewing moderators docs.
+ */
+function mentoring_moderators_docs_view_access() {
+  return user_access('access content') && (user_has_role(MODERATOR_RID) || user_has_role(ADMINISTRATOR_RID));
+}
+
+/**
+ * Custom delivery callback.
+ */
+function _mentoring_delivery_callback($page_callback_result) {
+  $content_type = drupal_get_http_header('Content-Type');
+
+  if (is_null($content_type)) {
+    drupal_add_http_header('Content-Type', 'text/html; charset=utf-8');
+  }
+
+  // Send appropriate HTTP-Header for browsers and search engines.
+  global $language;
+  drupal_add_http_header('Content-Language', $language->language);
+
+  switch ($content_type) {
+    case 'application/json':
+      print json_encode($page_callback_result);
+      break;
+
+    case 'application/xml':
+      print '<?xml version="1.0" encoding="UTF-8"><root>' . render($page_callback_result) . '</root>';
+      break;
+
+    default:
+      print '<html><head></head><body>';
+      print render($page_callback_result);
+      print '</body></html>';
+  }
+  drupal_page_footer();
 }
