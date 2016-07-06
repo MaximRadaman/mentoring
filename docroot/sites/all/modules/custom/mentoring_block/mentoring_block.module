@@ -4,6 +4,8 @@
  * Testing block api and batch api functions.
  */
 
+define('MENTORING_BLOCK_DEFAULT_CAR', 'bmw');
+
 /**
  * Implements hook_menu().
  */
@@ -32,4 +34,68 @@ function mentoring_block_form_block_admin_display_form_alter(&$form, &$form_stat
       }
     }
   }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function mentoring_block_block_info() {
+  $blocks['mentoring_block_car_brend'] = [
+    'info' => t('Car brend'),
+    'status' => TRUE,
+    'region' => 'sidebar_first',
+  ];
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function mentoring_block_block_configure($delta = '') {
+  switch ($delta) {
+    case 'mentoring_block_car_brend':
+      $form['mentoring_block_car_brend'] = [
+        '#type' => 'select',
+        '#title' => t('Select car brend'),
+        '#options' => [
+          'bmw' => t('BMW'),
+          'volvo' => t('Volvo'),
+          'lada' => t('Lada'),
+        ],
+        '#default_value' => variable_get('mentoring_block_car_brend', MENTORING_BLOCK_DEFAULT_CAR),
+      ];
+      break;
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function mentoring_block_block_save($delta = '', $edit = array()) {
+  switch ($delta) {
+    case 'mentoring_block_car_brend':
+      variable_set('mentoring_block_car_brend', $edit['mentoring_block_car_brend']);
+  }
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function mentoring_block_block_view($delta = '') {
+  switch ($delta) {
+    case 'mentoring_block_car_brend':
+      $car = variable_get('mentoring_block_car_brend', MENTORING_BLOCK_DEFAULT_CAR);
+      $block['subject'] = t('Car brend - @car', ['@car' => $car]);
+      switch ($car) {
+        case 'bmw':
+          $block['content'] = t('Good choice!');
+          break;
+
+        default:
+          $block['content'] = t('Not bad!');
+      }
+      break;
+  }
+  return $block;
 }
