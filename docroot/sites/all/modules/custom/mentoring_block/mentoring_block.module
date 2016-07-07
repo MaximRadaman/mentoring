@@ -17,6 +17,14 @@ function mentoring_block_menu() {
     'access arguments' => ['administer site configuration'],
     'file' => 'inc/mentoring_block.inc',
   ];
+  $items['admin/config/terms-batch'] = [
+    'title' => 'Upload terms from file',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_block_terms_upload_form'],
+    'access arguments' => ['administer site configuration'],
+    'file' => 'inc/mentoring_block.inc',
+  ];
+
 
   return $items;
 }
@@ -105,4 +113,133 @@ function mentoring_block_block_view($delta = '') {
  */
 function mentoring_block_block_view_search_form_alter(&$data, $block) {
   $block->title = t('Add Search title on hook_block_view_MODULE_DELTA_alter.');
+}
+
+/**
+ * Mentoring_block_terms_upload_form form.
+ */
+function mentoring_block_terms_upload_form($form, &$form_state) {
+  $form['mentoring_block_terms_file'] = [
+    '#type' => 'managed_file',
+    '#title' => t('Import'),
+    '#description' => t('The uploaded excel will be imported and temporarily saved.'),
+    '#upload_location' => 'public://tmp/',
+    '#upload_validators' => [
+      'file_validate_extensions' => ['xls xlsx'],
+    ],
+  ];
+  $form['submit'] = [
+    '#type' => 'submit',
+    '#value' => t('Import'),
+  ];
+  return $form;
+}
+
+/**
+ * Submit handler for mentoring_block_terms_upload_form.
+ */
+function mentoring_block_terms_upload_form_submit($form, &$form_state) {
+  // Check file upload.
+  $uri = db_query('SELECT uri FROM {file_managed} WHERE fid = :fid', [
+    ':fid' => $form_state['input']['mentoring_block_terms_file']['fid']
+  ])->fetchField();
+  if (!empty($uri)) {
+    $file_path = drupal_realpath($uri);
+    if (file_exists($file_path)) {
+      batch_set([
+        'title' => t('Importing Excel...'),
+        'operations' => [
+          ['mentoring_block_batch_process', [$file_path]],
+        ],
+        'finished' => 'mentoring_block_terms_upload_batch_finished',
+        'error_message' => t('The installation has encountered an error.'),
+        'progress_message' => t('Imported @current of @total products.'),
+      ]);
+    }
+  }
+}
+
+/**
+ * Batch operation for creating terms from Excel.
+ *
+ * @see mentoring_block_terms_upload_form_submit()
+ */
+function mentoring_block_batch_process($filepath, &$context) {
+  module_load_include('module', 'phpexcel');
+
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['progress'] = 100;
+  }
+
+  // Load library.
+  $library = libraries_load('PHPExcel');
+  if (empty($library['loaded'])) {
+    drupal_set_message(t("Couldn't load the PHPExcel library."), 'error');
+    $context['sandbox']['finished'] = 1;
+    $context['success'] = FALSE;
+    return;
+  }
+
+  $limit = 10;
+  $chunk_filter = new ChunkReadFilter();
+  $chunk_filter->setRows($context['sandbox']['progress'], $limit);
+  $data = phpexcel_import($filepath, TRUE, FALSE, array(
+    'setReadFilter' => array($chunk_filter),
+  ));
+
+  if (!is_array($data)) {
+    drupal_set_message(t("Something went wrong on pass !pass", array(
+      '!pass' => $context['sandbox']['progress'],
+    )), 'error');
+    $context['sandbox']['finished'] = 1;
+    $context['success'] = FALSE;
+    return;
+  }
+
+  // Get rid of the worksheet.
+  $data = $data[0];
+  $i = 0;
+  while ($i < $limit) {
+    if (!empty($data[$i])) {
+      // Create term.
+      $term = new stdClass();
+      $term->name = $data[$i]['Term Name'];
+      $term->vid = taxonomy_vocabulary_machine_name_load('tags')->vid;
+      $term->parent = 0;
+      taxonomy_term_save($term);
+      $context['results'][] = $term;
+      $context['sandbox']['progress']++;
+      $i++;
+    }
+    else {
+      // We have reached the end of our file. Finish now.
+      $context['sandbox']['finished'] = 1;
+      $context['success'] = TRUE;
+      return;
+    }
+  }
+
+  if ($context['sandbox']['progress'] != $context['process']['max']) {
+    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+  }
+}
+
+/**
+ * This function runs when the batch processing is complete.
+ *
+ * @see mentoring_block_terms_upload_form_submit()
+ */
+function mentoring_block_terms_upload_batch_finished($success, $results, $operations) {
+  if ($success) {
+    $message = t("!count items were processed.", array(
+      '!count' => count($results),
+    ));
+    $message .= theme('item_list', [
+      'items' => array_map(function ($term) {
+        return l($term->title, "taxonomy/term/{$term->tid}");
+      }, $results)
+    ]);
+    drupal_set_message($message);
+  }
 }
