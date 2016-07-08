@@ -3,4 +3,3 @@ description = Testing block api and batch api
 core = 7.x
 
 package = Mentoring
-files[] = inc/ChunkReadFilter.php

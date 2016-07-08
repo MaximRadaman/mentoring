@@ -74,5 +74,3 @@ function mentoring_block_disable_block($bid) {
   }
   return TRUE;
 }
-
-
