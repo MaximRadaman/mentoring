@@ -5,8 +5,6 @@
  */
 
 define('MENTORING_BLOCK_DEFAULT_CAR', 'bmw');
-define('MENTORING_BLOCK_TERM_BATCH_LIMIT', 100);
-define('MENTORING_BLOCK_UPLOAD_TERMS_VOCABULARY', 'tags');
 
 /**
  * Implements hook_menu().
@@ -162,17 +160,4 @@ function mentoring_block_get_library_version() {
   }
 
   return 'n/a';
-}
-
-/**
- * Helper function for creating term.
- */
-function mentoring_block_create_term($term_name, $vocabulary) {
-  // Create term.
-  $term = new stdClass();
-  $term->name = $term_name;
-  $term->vid = $vocabulary->vid;
-  $term->parent = 0;
-  taxonomy_term_save($term);
-  return $term;
 }

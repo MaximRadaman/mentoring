@@ -5,6 +5,7 @@
  */
 
 define('MENTORING_BLOCK_SITE_DEFAULT_THEME', 'my_theme');
+define('MENTORING_BLOCK_TERM_BATCH_LIMIT', 100);
 
 /**
  * Mentoring_block_visibility_form Form.
@@ -192,5 +193,17 @@ function mentoring_block_node_generate_form($form, &$form_state) {
  * Submit handler for mentoring_block_node_generate_form Form.
  */
 function mentoring_block_node_generate_form_submit($form, &$form_state) {
-
+  $batch = [
+    'title' => t('Generating nodes...'),
+    'operations' => [
+      [
+        'mentoring_block_batch_generate_nodes', [$form_state['values']['node_type'], $form_state['values']['node_count']],
+      ]
+    ],
+    'finished' => 'mentoring_block_generate_nodes_batch_finished',
+    'error_message' => t('The installation has encountered an error.'),
+    'progress_message' => t('Imported @current of @total nodes.'),
+    'file' => drupal_get_path('module', 'mentoring_block') . '/inc/mentoring_block.batch.inc',
+  ];
+  batch_set($batch);
 }

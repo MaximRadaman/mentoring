@@ -4,6 +4,9 @@
  * Contains batch operations.
  */
 
+define('MENTORING_BLOCK_NODE_BATCH_LIMIT', 5);
+define('MENTORING_BLOCK_UPLOAD_TERMS_VOCABULARY', 'tags');
+
 /**
  * Batch operation for creating terms from Excel.
  *
@@ -54,6 +57,19 @@ function mentoring_block_batch_term_create($file_path, $start, $end, &$context) 
 }
 
 /**
+ * Helper function for creating term.
+ */
+function mentoring_block_create_term($term_name, $vocabulary) {
+  // Create term.
+  $term = new stdClass();
+  $term->name = $term_name;
+  $term->vid = $vocabulary->vid;
+  $term->parent = 0;
+  taxonomy_term_save($term);
+  return $term;
+}
+
+/**
  * This function runs when the batch processing is complete.
  *
  * @see mentoring_block_terms_upload_form_submit()
@@ -70,4 +86,64 @@ function mentoring_block_terms_upload_batch_finished($success, $results, $operat
     ]);
     drupal_set_message($message);
   }
+}
+
+/**
+ * Batch operation for generating nodes.
+ *
+ * @see mentoring_block_node_generate_form_submit()
+ */
+function mentoring_block_batch_generate_nodes($node_type, $node_count, &$context) {
+  if (empty($context['sandbox'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['max'] = $node_count;
+  }
+  global $user;
+  $voc = taxonomy_vocabulary_machine_name_load(MENTORING_BLOCK_UPLOAD_TERMS_VOCABULARY);
+  $term_list = taxonomy_get_tree($voc->vid, 0, 1);
+  $term_count = count($term_list);
+  for ($i = 0; $i < MENTORING_BLOCK_NODE_BATCH_LIMIT; $i++) {
+    $term_key = rand(1, $term_count);
+    if (!$node = mentoring_block_node_create($node_type, $user, $term_list[$term_key])) {
+      continue;
+    }
+    else {
+      $context['results'][] = $node;
+      $context['sandbox']['progress']++;
+    }
+  }
+
+  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+  }
+}
+
+/**
+ * This function runs when the batch processing is complete.
+ */
+function mentoring_block_generate_nodes_batch_finished($success, $results, $operations) {
+  if ($success) {
+    $message = t("!count items were processed.", array(
+      '!count' => count($results),
+    ));
+    $message .= theme('item_list', [
+      'items' => array_map(function ($node) {
+        return l($node->label(), "node/{$node->nid}");
+      }, $results)
+    ]);
+    drupal_set_message($message);
+  }
+}
+
+/**
+ * Helper function for creating node.
+ */
+function mentoring_block_node_create($node_type, $user, $term) {
+  $e = entity_create('node', ['type' => $node_type]);
+  $e->uid = $user->uid;
+  $entity = entity_metadata_wrapper('node', $e);
+  $entity->title = $node_type . $user->name . time();
+  $entity->field_tags[] = $term->tid;
+  $entity->save();
+  return $entity;
 }
