@@ -26,7 +26,13 @@ function mentoring_block_menu() {
     'access arguments' => ['administer site configuration'],
     'file' => 'inc/mentoring_block.inc',
   ];
-
+  $items['admin/config/node-generation'] = [
+    'title' => 'Generate nodes',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_block_node_generate_form'],
+    'access arguments' => ['administer site configuration'],
+    'file' => 'inc/mentoring_block.inc',
+  ];
 
   return $items;
 }
@@ -115,162 +121,6 @@ function mentoring_block_block_view($delta = '') {
  */
 function mentoring_block_block_view_search_form_alter(&$data, $block) {
   $block->title = t('Add Search title on hook_block_view_MODULE_DELTA_alter.');
-}
-
-/**
- * Mentoring_block_terms_upload_form form.
- */
-function mentoring_block_terms_upload_form($form, &$form_state) {
-  $form['mentoring_block_terms_file'] = [
-    '#type' => 'managed_file',
-    '#title' => t('Import'),
-    '#description' => t('The uploaded excel will be imported and temporarily saved.'),
-    '#upload_location' => 'public://tmp/',
-    '#upload_validators' => [
-      'file_validate_extensions' => ['xls xlsx'],
-    ],
-  ];
-  $form['submit'] = [
-    '#type' => 'submit',
-    '#value' => t('Import'),
-  ];
-
-  return $form;
-
-}
-
-/**
- * Submit handler for mentoring_block_terms_upload_form.
- */
-function mentoring_block_terms_upload_form_submit($form, &$form_state) {
-  // Check file upload.
-  $uri = db_query('SELECT uri FROM {file_managed} WHERE fid = :fid', [
-    ':fid' => $form_state['input']['mentoring_block_terms_file']['fid']
-  ])->fetchField();
-
-  if (empty($uri)) {
-    drupal_set_message(t('No correct $uri'), 'error');
-    return;
-  }
-
-  $file_path = drupal_realpath($uri);
-
-  if (!file_exists($file_path)) {
-    drupal_set_message(t('No file found'), 'error');
-    return;
-  }
-
-  // Load library.
-  $library = libraries_load('PHPExcel');
-  if (empty($library['loaded'])) {
-    drupal_set_message(t("Couldn't load the PHPExcel library."), 'error');
-    return;
-  }
-
-  // Specify max batch operations.
-  try {
-    $fileObj = \PHPExcel_IOFactory::load($file_path);
-  }
-  catch (Exception $e) {
-    watchdog_exception('mentoring_block', $e);
-  }
-  if ($fileObj instanceof PHPExcel) {
-    $sheetObj = $fileObj->getActiveSheet();
-  }
-  $highestRow = $sheetObj->getHighestRow();
-  if (!$highestRow) {
-    return;
-  }
-  $operations_count = ceil($highestRow / MENTORING_BLOCK_TERM_BATCH_LIMIT);
-
-  $operations = [];
-  for ($i = 0, $start = 1, $end = MENTORING_BLOCK_TERM_BATCH_LIMIT; $i < $operations_count; $i++, $start = $end + 1, $end += MENTORING_BLOCK_TERM_BATCH_LIMIT) {
-    if ($i == ($operations_count - 1) &&
-      ($limit = $highestRow % MENTORING_BLOCK_TERM_BATCH_LIMIT)) {
-      $end = $end - MENTORING_BLOCK_TERM_BATCH_LIMIT + $limit;
-    }
-    $operations[] = [
-      'mentoring_block_batch_term_create',
-      [$file_path, $start, $end],
-    ];
-  }
-  $batch = [
-    'title' => t('Importing Excel...'),
-    'operations' => $operations,
-    'finished' => 'mentoring_block_terms_upload_batch_finished',
-    'error_message' => t('The installation has encountered an error.'),
-    'progress_message' => t('Imported @current of @total products.'),
-  ];
-  batch_set($batch);
-
-}
-
-/**
- * Batch operation for creating terms from Excel.
- *
- * @see mentoring_block_terms_upload_form_submit()
- */
-function mentoring_block_batch_term_create($file_path, $start, $end, &$context) {
-
-  // Load library.
-  $library = libraries_load('PHPExcel');
-  if (empty($library['loaded'])) {
-    drupal_set_message(t("Couldn't load the PHPExcel library."), 'error');
-    $context['sandbox']['finished'] = 1;
-    $context['success'] = FALSE;
-    return;
-  }
-
-  // Create a new Reader of the type.
-  try {
-    $inputFileType = \PHPExcel_IOFactory::identify($file_path);
-    $objReader = \PHPExcel_IOFactory::createReader($inputFileType);
-    $chunkFilter = new ChunkReadFilter();
-    $objReader->setReadFilter($chunkFilter);
-    $chunkFilter->setRows($start, $end);
-    $objPHPExcel = $objReader->load($file_path);
-  }
-  catch (Exception $e) {
-    watchdog_exception('mentoring_block', $e, $e->getMessage());
-    return;
-  }
-
-  $sheetObj = $objPHPExcel->getActiveSheet();
-  foreach ($sheetObj->getRowIterator($start, $end) as $row) {
-    foreach ($row->getCellIterator() as $cell) {
-      $voc = taxonomy_vocabulary_machine_name_load(MENTORING_BLOCK_UPLOAD_TERMS_VOCABULARY);
-      if (!$voc) {
-        return;
-      }
-      if ($term = taxonomy_get_term_by_name($cell->getCalculatedValue(), $voc->machine_name)) {
-        continue;
-      }
-      $term = mentoring_block_create_term($cell->getCalculatedValue(), $voc);
-      if (!$term->tid) {
-        continue;
-      }
-      $context['results'][] = $term;
-    }
-  }
-}
-
-/**
- * This function runs when the batch processing is complete.
- *
- * @see mentoring_block_terms_upload_form_submit()
- */
-function mentoring_block_terms_upload_batch_finished($success, $results, $operations) {
-  if ($success) {
-    $message = t("!count items were processed.", array(
-      '!count' => count($results),
-    ));
-    $message .= theme('item_list', [
-      'items' => array_map(function ($term) {
-        return l($term->name, "taxonomy/term/{$term->tid}");
-      }, $results)
-    ]);
-    drupal_set_message($message);
-  }
 }
 
 /**
