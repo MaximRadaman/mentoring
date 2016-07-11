@@ -102,7 +102,8 @@ function mentoring_block_batch_generate_nodes($node_type, $node_count, &$context
   $voc = taxonomy_vocabulary_machine_name_load(MENTORING_BLOCK_UPLOAD_TERMS_VOCABULARY);
   $term_list = taxonomy_get_tree($voc->vid, 0, 1);
   $term_count = count($term_list);
-  for ($i = 0; $i < MENTORING_BLOCK_NODE_BATCH_LIMIT; $i++) {
+  $limit = ($node_count < MENTORING_BLOCK_NODE_BATCH_LIMIT) ? $node_count : MENTORING_BLOCK_NODE_BATCH_LIMIT;
+  for ($i = 0; $i < $limit; $i++) {
     $term_key = rand(1, $term_count);
     if (!$node = mentoring_block_node_create($node_type, $user, $term_list[$term_key])) {
       continue;
@@ -143,6 +144,11 @@ function mentoring_block_node_create($node_type, $user, $term) {
   $e->uid = $user->uid;
   $entity = entity_metadata_wrapper('node', $e);
   $entity->title = $node_type . $user->name . time();
+  $entity->field_text_field = 'Test info' . time();
+  $entity->body->set(['value' => "<b>Node body</b>"]);
+  $image_url = 'https://placekitten.com/' . rand(200, 600) . '/' . rand(200, 400);
+  $image_file_info = system_retrieve_file($image_url, 'public://images/', TRUE);
+  $entity->field_image = ['fid' => $image_file_info->fid];
   $entity->field_tags[] = $term->tid;
   $entity->save();
   return $entity;

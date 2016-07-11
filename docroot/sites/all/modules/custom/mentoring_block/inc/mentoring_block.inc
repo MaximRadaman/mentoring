@@ -170,7 +170,7 @@ function mentoring_block_terms_upload_form_submit($form, &$form_state) {
  */
 function mentoring_block_node_generate_form($form, &$form_state) {
   $form['node_type'] = [
-    '#type' => 'select',
+    '#type' => 'radios',
     '#title' => t('Select node type'),
     '#options' => node_type_get_names(),
     '#required' => TRUE,

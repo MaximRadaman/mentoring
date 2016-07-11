@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Mentoring CT: Page feature.
+ */
+
+include_once 'mentoring_ct_page.features.inc';

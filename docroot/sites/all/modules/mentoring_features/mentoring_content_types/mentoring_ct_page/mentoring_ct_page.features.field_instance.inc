@@ -1,18 +1,18 @@
 <?php
 /**
  * @file
- * mentoring_ct_news.features.field_instance.inc
+ * mentoring_ct_page.features.field_instance.inc
  */
 
 /**
  * Implements hook_field_default_field_instances().
  */
-function mentoring_ct_news_field_default_field_instances() {
+function mentoring_ct_page_field_default_field_instances() {
   $field_instances = array();
 
-  // Exported field_instance: 'node-news-body'.
-  $field_instances['node-news-body'] = array(
-    'bundle' => 'news',
+  // Exported field_instance: 'node-page-body'.
+  $field_instances['node-page-body'] = array(
+    'bundle' => 'page',
     'default_value' => NULL,
     'deleted' => 0,
     'description' => '',
@@ -54,9 +54,9 @@ function mentoring_ct_news_field_default_field_instances() {
     ),
   );
 
-  // Exported field_instance: 'node-news-field_image'.
-  $field_instances['node-news-field_image'] = array(
-    'bundle' => 'news',
+  // Exported field_instance: 'node-page-field_image'.
+  $field_instances['node-page-field_image'] = array(
+    'bundle' => 'page',
     'deleted' => 0,
     'description' => '',
     'display' => array(
@@ -68,7 +68,7 @@ function mentoring_ct_news_field_default_field_instances() {
           'image_style' => '',
         ),
         'type' => 'image',
-        'weight' => 5,
+        'weight' => 2,
       ),
       'teaser' => array(
         'label' => 'above',
@@ -100,99 +100,13 @@ function mentoring_ct_news_field_default_field_instances() {
         'progress_indicator' => 'throbber',
       ),
       'type' => 'image_image',
-      'weight' => 38,
+      'weight' => 35,
     ),
   );
 
-  // Exported field_instance: 'node-news-field_related_articles'.
-  $field_instances['node-news-field_related_articles'] = array(
-    'bundle' => 'news',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => '',
-    'display' => array(
-      'default' => array(
-        'label' => 'above',
-        'module' => 'entityreference',
-        'settings' => array(
-          'link' => FALSE,
-        ),
-        'type' => 'entityreference_label',
-        'weight' => 2,
-      ),
-      'teaser' => array(
-        'label' => 'above',
-        'settings' => array(),
-        'type' => 'hidden',
-        'weight' => 0,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'field_related_articles',
-    'label' => 'Related articles',
-    'required' => 0,
-    'settings' => array(
-      'user_register_form' => FALSE,
-    ),
-    'widget' => array(
-      'active' => 1,
-      'module' => 'entityreference',
-      'settings' => array(
-        'match_operator' => 'CONTAINS',
-        'path' => '',
-        'size' => 60,
-      ),
-      'type' => 'entityreference_autocomplete',
-      'weight' => 33,
-    ),
-  );
-
-  // Exported field_instance: 'node-news-field_related_news'.
-  $field_instances['node-news-field_related_news'] = array(
-    'bundle' => 'news',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => '',
-    'display' => array(
-      'default' => array(
-        'label' => 'above',
-        'module' => 'entityreference',
-        'settings' => array(
-          'link' => FALSE,
-        ),
-        'type' => 'entityreference_label',
-        'weight' => 3,
-      ),
-      'teaser' => array(
-        'label' => 'above',
-        'settings' => array(),
-        'type' => 'hidden',
-        'weight' => 0,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'field_related_news',
-    'label' => 'Related news',
-    'required' => 0,
-    'settings' => array(
-      'user_register_form' => FALSE,
-    ),
-    'widget' => array(
-      'active' => 1,
-      'module' => 'entityreference',
-      'settings' => array(
-        'match_operator' => 'CONTAINS',
-        'path' => '',
-        'size' => 60,
-      ),
-      'type' => 'entityreference_autocomplete',
-      'weight' => 34,
-    ),
-  );
-
-  // Exported field_instance: 'node-news-field_tags'.
-  $field_instances['node-news-field_tags'] = array(
-    'bundle' => 'news',
+  // Exported field_instance: 'node-page-field_tags'.
+  $field_instances['node-page-field_tags'] = array(
+    'bundle' => 'page',
     'default_value' => NULL,
     'deleted' => 0,
     'description' => '',
@@ -202,7 +116,7 @@ function mentoring_ct_news_field_default_field_instances() {
         'module' => 'taxonomy',
         'settings' => array(),
         'type' => 'taxonomy_term_reference_link',
-        'weight' => 4,
+        'weight' => 1,
       ),
       'teaser' => array(
         'label' => 'above',
@@ -226,13 +140,13 @@ function mentoring_ct_news_field_default_field_instances() {
         'size' => 60,
       ),
       'type' => 'taxonomy_autocomplete',
-      'weight' => 36,
+      'weight' => 33,
     ),
   );
 
-  // Exported field_instance: 'node-news-field_text_field'.
-  $field_instances['node-news-field_text_field'] = array(
-    'bundle' => 'news',
+  // Exported field_instance: 'node-page-field_text_field'.
+  $field_instances['node-page-field_text_field'] = array(
+    'bundle' => 'page',
     'default_value' => NULL,
     'deleted' => 0,
     'description' => '',
@@ -242,7 +156,7 @@ function mentoring_ct_news_field_default_field_instances() {
         'module' => 'text',
         'settings' => array(),
         'type' => 'text_default',
-        'weight' => 6,
+        'weight' => 3,
       ),
       'teaser' => array(
         'label' => 'above',
@@ -266,13 +180,13 @@ function mentoring_ct_news_field_default_field_instances() {
         'size' => 60,
       ),
       'type' => 'text_textfield',
-      'weight' => 40,
+      'weight' => 37,
     ),
   );
 
-  // Exported field_instance: 'node-news-field_text_file'.
-  $field_instances['node-news-field_text_file'] = array(
-    'bundle' => 'news',
+  // Exported field_instance: 'node-page-field_text_file'.
+  $field_instances['node-page-field_text_file'] = array(
+    'bundle' => 'page',
     'deleted' => 0,
     'description' => '',
     'display' => array(
@@ -281,7 +195,7 @@ function mentoring_ct_news_field_default_field_instances() {
         'module' => 'file',
         'settings' => array(),
         'type' => 'file_default',
-        'weight' => 7,
+        'weight' => 4,
       ),
       'teaser' => array(
         'label' => 'above',
@@ -308,57 +222,14 @@ function mentoring_ct_news_field_default_field_instances() {
         'progress_indicator' => 'throbber',
       ),
       'type' => 'file_generic',
-      'weight' => 42,
-    ),
-  );
-
-  // Exported field_instance: 'node-news-news_sign'.
-  $field_instances['node-news-news_sign'] = array(
-    'bundle' => 'news',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => 'A field for testing the programmatic creation of new fields.',
-    'display' => array(
-      'default' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => 1,
-      ),
-      'teaser' => array(
-        'label' => 'above',
-        'settings' => array(),
-        'type' => 'hidden',
-        'weight' => 0,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'news_sign',
-    'label' => 'Sign',
-    'required' => FALSE,
-    'settings' => array(
-      'text_processing' => 0,
-      'user_register_form' => FALSE,
-    ),
-    'widget' => array(
-      'module' => 'text',
-      'settings' => array(
-        'size' => 60,
-      ),
-      'type' => 'text_textfield',
-      'weight' => 32,
+      'weight' => 39,
     ),
   );
 
   // Translatables
   // Included for use with string extractors like potx.
-  t('A field for testing the programmatic creation of new fields.');
   t('Body');
   t('Image');
-  t('Related articles');
-  t('Related news');
-  t('Sign');
   t('Tags');
   t('Text field');
   t('Text file');
