@@ -5,6 +5,8 @@
  */
 
 define('MENTORING_BLOCK_DEFAULT_CAR', 'bmw');
+define('MENTORING_BLOCK_TERM_BATCH_LIMIT', 100);
+define('MENTORING_BLOCK_UPLOAD_TERMS_VOCABULARY', 'tags');
 
 /**
  * Implements hook_menu().
@@ -133,11 +135,6 @@ function mentoring_block_terms_upload_form($form, &$form_state) {
     '#value' => t('Import'),
   ];
 
-//  $vocabulary = taxonomy_vocabulary_machine_name_load('tags');
-//  foreach (taxonomy_get_tree($vocabulary->vid) as $term) {
-//    taxonomy_term_delete($term->tid);
-//  }
-
   return $form;
 
 }
@@ -170,6 +167,7 @@ function mentoring_block_terms_upload_form_submit($form, &$form_state) {
     return;
   }
 
+  // Specify max batch operations.
   try {
     $fileObj = \PHPExcel_IOFactory::load($file_path);
   }
@@ -179,9 +177,23 @@ function mentoring_block_terms_upload_form_submit($form, &$form_state) {
   if ($fileObj instanceof PHPExcel) {
     $sheetObj = $fileObj->getActiveSheet();
   }
-  $highestColumn = $sheetObj->getHighestColumn();
+  $highestRow = $sheetObj->getHighestRow();
+  if (!$highestRow) {
+    return;
+  }
+  $operations_count = ceil($highestRow / MENTORING_BLOCK_TERM_BATCH_LIMIT);
 
   $operations = [];
+  for ($i = 0, $start = 1, $end = MENTORING_BLOCK_TERM_BATCH_LIMIT; $i < $operations_count; $i++, $start = $end + 1, $end += MENTORING_BLOCK_TERM_BATCH_LIMIT) {
+    if ($i == ($operations_count - 1) &&
+      ($limit = $highestRow % MENTORING_BLOCK_TERM_BATCH_LIMIT)) {
+      $end = $end - MENTORING_BLOCK_TERM_BATCH_LIMIT + $limit;
+    }
+    $operations[] = [
+      'mentoring_block_batch_term_create',
+      [$file_path, $start, $end],
+    ];
+  }
   $batch = [
     'title' => t('Importing Excel...'),
     'operations' => $operations,
@@ -189,7 +201,8 @@ function mentoring_block_terms_upload_form_submit($form, &$form_state) {
     'error_message' => t('The installation has encountered an error.'),
     'progress_message' => t('Imported @current of @total products.'),
   ];
-//  batch_set($batch);
+  batch_set($batch);
+
 }
 
 /**
@@ -197,13 +210,7 @@ function mentoring_block_terms_upload_form_submit($form, &$form_state) {
  *
  * @see mentoring_block_terms_upload_form_submit()
  */
-function mentoring_block_batch_process($filepath, &$context) {
-  module_load_include('module', 'phpexcel');
-
-  if (!isset($context['sandbox']['progress'])) {
-    $context['sandbox']['progress'] = 0;
-    $context['sandbox']['progress'] = 100;
-  }
+function mentoring_block_batch_term_create($file_path, $start, $end, &$context) {
 
   // Load library.
   $library = libraries_load('PHPExcel');
@@ -214,47 +221,36 @@ function mentoring_block_batch_process($filepath, &$context) {
     return;
   }
 
-  $limit = 10;
-  $chunk_filter = new ChunkReadFilter();
-  $chunk_filter->setRows($context['sandbox']['progress'], $limit);
-  $data = phpexcel_import($filepath, TRUE, FALSE, array(
-    'setReadFilter' => array($chunk_filter),
-  ));
-
-  if (!is_array($data)) {
-    drupal_set_message(t("Something went wrong on pass !pass", array(
-      '!pass' => $context['sandbox']['progress'],
-    )), 'error');
-    $context['sandbox']['finished'] = 1;
-    $context['success'] = FALSE;
+  // Create a new Reader of the type.
+  try {
+    $inputFileType = \PHPExcel_IOFactory::identify($file_path);
+    $objReader = \PHPExcel_IOFactory::createReader($inputFileType);
+    $chunkFilter = new ChunkReadFilter();
+    $objReader->setReadFilter($chunkFilter);
+    $chunkFilter->setRows($start, $end);
+    $objPHPExcel = $objReader->load($file_path);
+  }
+  catch (Exception $e) {
+    watchdog_exception('mentoring_block', $e, $e->getMessage());
     return;
   }
 
-  // Get rid of the worksheet.
-  $data = $data[0];
-  $i = 0;
-  while ($i < $limit) {
-    if (!empty($data[$i])) {
-      // Create term.
-      $term = new stdClass();
-      $term->name = $data[$i]['Term Name'];
-      $term->vid = taxonomy_vocabulary_machine_name_load('tags')->vid;
-      $term->parent = 0;
-      taxonomy_term_save($term);
+  $sheetObj = $objPHPExcel->getActiveSheet();
+  foreach ($sheetObj->getRowIterator($start, $end) as $row) {
+    foreach ($row->getCellIterator() as $cell) {
+      $voc = taxonomy_vocabulary_machine_name_load(MENTORING_BLOCK_UPLOAD_TERMS_VOCABULARY);
+      if (!$voc) {
+        return;
+      }
+      if ($term = taxonomy_get_term_by_name($cell->getCalculatedValue(), $voc->machine_name)) {
+        continue;
+      }
+      $term = mentoring_block_create_term($cell->getCalculatedValue(), $voc);
+      if (!$term->tid) {
+        continue;
+      }
       $context['results'][] = $term;
-      $context['sandbox']['progress']++;
-      $i++;
     }
-    else {
-      // We have reached the end of our file. Finish now.
-      $context['sandbox']['finished'] = 1;
-      $context['success'] = TRUE;
-      return;
-    }
-  }
-
-  if ($context['sandbox']['progress'] != $context['process']['max']) {
-    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
   }
 }
 
@@ -275,4 +271,58 @@ function mentoring_block_terms_upload_batch_finished($success, $results, $operat
     ]);
     drupal_set_message($message);
   }
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function mentoring_block_libraries_info() {
+  return [
+    'PHPExcel' => [
+      'name' => 'PHPExcel',
+      'vendor url' => 'http://phpexcel.codeplex.com/',
+      'download url' => 'https://github.com/PHPOffice/PHPExcel',
+      'version callback' => 'mentoring_block_get_library_version',
+      'path' => 'Classes',
+      'files' => [
+        'php' => [
+          'PHPExcel.php',
+        ],
+      ],
+    ],
+  ];
+}
+
+/**
+ * Libraries API version callback.
+ */
+function mentoring_block_get_library_version() {
+  $library = libraries_load('PHPExcel');
+  $changelog_file = $library['library path'] . '/changelog.txt';
+
+  if (file_exists($changelog_file)) {
+    $changelog = file_get_contents($changelog_file);
+
+    if (preg_match('/\d{4}-\d{2}-\d{2}\s+\(v([0-9\.]+)/', $changelog, $match)) {
+      return $match[1];
+    }
+    elseif (preg_match('/@version\s+([0-9\.]+)/', $changelog, $match)) {
+      return $match[1];
+    }
+  }
+
+  return 'n/a';
+}
+
+/**
+ * Helper function for creating term.
+ */
+function mentoring_block_create_term($term_name, $vocabulary) {
+  // Create term.
+  $term = new stdClass();
+  $term->name = $term_name;
+  $term->vid = $vocabulary->vid;
+  $term->parent = 0;
+  taxonomy_term_save($term);
+  return $term;
 }
