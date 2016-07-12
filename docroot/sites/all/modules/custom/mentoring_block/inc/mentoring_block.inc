@@ -186,6 +186,7 @@ function mentoring_block_node_generate_form($form, &$form_state) {
     '#type' => 'submit',
     '#value' => t('Generate'),
   ];
+
   return $form;
 }
 
@@ -202,7 +203,7 @@ function mentoring_block_node_generate_form_submit($form, &$form_state) {
     ],
     'finished' => 'mentoring_block_generate_nodes_batch_finished',
     'error_message' => t('The installation has encountered an error.'),
-    'progress_message' => t('Imported @current of @total nodes.'),
+    'progress_message' => t('Generated @current of @total nodes.'),
     'file' => drupal_get_path('module', 'mentoring_block') . '/inc/mentoring_block.batch.inc',
   ];
   batch_set($batch);

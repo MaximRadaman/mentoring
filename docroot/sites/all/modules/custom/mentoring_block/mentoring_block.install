@@ -1,0 +1,78 @@
+<?php
+/**
+ * @file
+ * Contains installation hooks.
+ */
+
+/**
+ * Implements hook_update_N.
+ */
+function mentoring_block_update_7100(&$sandbox) {
+  // Nodes nids to unset user.
+  if (!isset($sandbox['total']['user_update'])) {
+    $result = db_select('node', 'n')
+      ->condition('n.uid', '0', '!=')
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+
+    $sandbox['total']['user_update'] = $result;
+    $sandbox['current']['user_update'] = 0;
+  }
+  // First change user in all nodes.
+  if (isset($sandbox['total']['user_update']) &&
+    $sandbox['total']['user_update'] && ($sandbox['current']['user_update'] < $sandbox['total']['user_update'])) {
+
+    $nodes_per_pass = 10;
+
+    $nodes = db_select('node', 'n')
+      ->fields('n')
+      ->condition('n.uid', '0', '!=')
+      ->range(0, $nodes_per_pass)
+      ->execute()
+      ->fetchAll();
+
+    foreach ($nodes as $node) {
+      $node->uid = 0;
+      node_save($node);
+
+      drupal_set_message(t('Change user in node @nid', ['@nid' => $node->nid]));
+      $sandbox['current']['user_update']++;
+    }
+
+    $sandbox['#finished'] = ($sandbox['current']['user_update'] / $sandbox['total']['user_update']) / 2;
+    $sandbox['user_update']['finished'] = $sandbox['current']['user_update'] / $sandbox['total']['user_update'];
+  }
+  else {
+    if (!isset($sandbox['total']['title_update'])) {
+      $result = db_select('node', 'n')
+        ->countQuery()
+        ->execute()
+        ->fetchField();
+      $sandbox['total']['title_update'] = $result;
+      $sandbox['current']['title_update'] = 0;
+    }
+
+    $nodes_per_pass = 10;
+    $result = db_query_range('SELECT nid FROM {node}', $sandbox['current']['title_update'], $nodes_per_pass);
+    while ($row = $result->fetchAssoc()) {
+      // Load the node, edit its title, and save the node.
+      $node = node_load($row['nid']);
+      $node->title = $node->title . ' UPDATED';
+      node_save($node);
+
+      drupal_set_message(t('Change title in node @nid', array('@nid' => $node->nid)));
+
+      // Increment "current" by 1.
+      $sandbox['current']['title_update']++;
+    }
+
+    $sandbox['#finished'] = ($sandbox['user_update']['finished'] + ($sandbox['current']['title_update'] / $sandbox['total']['title_update'])) / 2;
+    $sandbox['title_update']['finished'] = $sandbox['current']['title_update'] / $sandbox['total']['title_update'];
+  }
+
+  if ($sandbox['#finished'] === 1) {
+    drupal_set_message(t('User changed in @nodes nodes. DONE!!!', array('@nodes' => $sandbox['total']['user_update'])));
+    drupal_set_message(t('Title changed in @nodes nodes. DONE!!!', array('@nodes' => $sandbox['total']['title_update'])));
+  }
+}

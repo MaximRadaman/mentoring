@@ -104,6 +104,9 @@ function mentoring_block_batch_generate_nodes($node_type, $node_count, &$context
   $term_count = count($term_list);
   $limit = ($node_count < MENTORING_BLOCK_NODE_BATCH_LIMIT) ? $node_count : MENTORING_BLOCK_NODE_BATCH_LIMIT;
   for ($i = 0; $i < $limit; $i++) {
+    if ($context['sandbox']['progress'] == $context['sandbox']['max']) {
+      break;
+    }
     $term_key = rand(1, $term_count);
     if (!$node = mentoring_block_node_create($node_type, $user, $term_list[$term_key])) {
       continue;
@@ -129,7 +132,7 @@ function mentoring_block_generate_nodes_batch_finished($success, $results, $oper
     ));
     $message .= theme('item_list', [
       'items' => array_map(function ($node) {
-        return l($node->label(), "node/{$node->nid}");
+        return l($node->label(), 'node/' . $node->getIdentifier());
       }, $results)
     ]);
     drupal_set_message($message);
@@ -146,9 +149,22 @@ function mentoring_block_node_create($node_type, $user, $term) {
   $entity->title = $node_type . $user->name . time();
   $entity->field_text_field = 'Test info' . time();
   $entity->body->set(['value' => "<b>Node body</b>"]);
-  $image_url = 'https://placekitten.com/' . rand(200, 600) . '/' . rand(200, 400);
+  if (!file_exists('public://images') || !is_dir('public://images')) {
+    drupal_mkdir('public://images');
+  }
+  $image_url = 'https://placekitten.com/' . round(rand(200, 600)) . '/' . round(rand(200, 400));
   $image_file_info = system_retrieve_file($image_url, 'public://images/', TRUE);
-  $entity->field_image = ['fid' => $image_file_info->fid];
+  if ($image_file_info) {
+    $entity->field_image = ['fid' => $image_file_info->fid];
+  }
+  if (!file_exists('public://txt') || !is_dir('public://txt')) {
+    drupal_mkdir('public://txt');
+  }
+  $filename = 'generated' . time() . '.txt';
+  $txt_file = file_save_data(file_get_contents('http://metaphorpsum.com/paragraphs/4'), 'public://txt/' . $filename);
+  if ($txt_file) {
+    $entity->field_text_file->file->set($txt_file);
+  }
   $entity->field_tags[] = $term->tid;
   $entity->save();
   return $entity;
