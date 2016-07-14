@@ -161,13 +161,3 @@ function mentoring_block_get_library_version() {
 
   return 'n/a';
 }
-
-/**
- * Implements hook_install().
- */
-function mentoring_block_install() {
-  // Reset the schema version, so our update hooks can be processed during the installation.
-  drupal_set_installed_schema_version('mentoring_block', '7100');
-  // Then run the updates as usual.
-  mentoring_block_update_7100($sandbox);
-}
