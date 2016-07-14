@@ -15,9 +15,9 @@ class ChunkReadFilter implements PHPExcel_Reader_IReadFilter {
   /**
    * Set rows.
    */
-  public function setRows($start, $chunk_size) {
+  public function setRows($start, $end) {
     $this->start = $start;
-    $this->end   = $start + $chunk_size;
+    $this->end = $end;
   }
 
   /**
@@ -26,9 +26,10 @@ class ChunkReadFilter implements PHPExcel_Reader_IReadFilter {
   public function readCell($column, $row, $worksheetName = '') {
     // Only read the heading row, and the rows that are between
     // $this->start and $this->end.
-    if (($row == 1) || ($row >= $this->start && $row < $this->end)) {
+    if ($row >= $this->start && $row <= $this->end) {
       return TRUE;
     }
+
     return FALSE;
   }
 
