@@ -226,7 +226,7 @@ function hook_libraries_info() {
     // Specify arguments for the version callback. By default,
     // libraries_get_version() takes a named argument array:
     'version arguments' => array(
-      'file' => 'docs/CHANGELOG.txt',
+      'file' => 'docs/changelog.txt',
       'pattern' => '@version\s+([0-9a-zA-Z\.-]+)@',
       'lines' => 5,
       'cols' => 20,
