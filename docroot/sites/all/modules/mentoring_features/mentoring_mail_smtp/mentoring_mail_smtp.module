@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Mentoring: Mail: Smtp feature.
+ */
+
+include_once 'mentoring_mail_smtp.features.inc';

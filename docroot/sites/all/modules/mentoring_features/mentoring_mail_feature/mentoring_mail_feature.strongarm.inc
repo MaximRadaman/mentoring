@@ -20,16 +20,6 @@ function mentoring_mail_feature_strongarm() {
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
-  $strongarm->name = 'mail_system';
-  $strongarm->value = array(
-    'default-system' => 'MimeMailSystem',
-    'mimemail' => 'MimeMailSystem',
-  );
-  $export['mail_system'] = $strongarm;
-
-  $strongarm = new stdClass();
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
-  $strongarm->api_version = 1;
   $strongarm->name = 'mimemail_engine';
   $strongarm->value = 'mimemail';
   $export['mimemail_engine'] = $strongarm;
@@ -38,7 +28,7 @@ function mentoring_mail_feature_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'mimemail_format';
-  $strongarm->value = 'filtered_html';
+  $strongarm->value = 'mail_format';
   $export['mimemail_format'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -87,7 +77,7 @@ function mentoring_mail_feature_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'mimemail_sitestyle';
-  $strongarm->value = 1;
+  $strongarm->value = 0;
   $export['mimemail_sitestyle'] = $strongarm;
 
   $strongarm = new stdClass();
