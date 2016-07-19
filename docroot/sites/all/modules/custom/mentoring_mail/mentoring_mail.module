@@ -53,7 +53,7 @@ function mentoring_mail_mail($key, &$message, $params) {
 
       // Adding our attachment array.
       if (isset($message['logo_uri'])) {
-        $message['params']['attachments'][] = $logo;
+        $message['params']['attachments'][] = (array) $logo;
       }
 
       $variables = [
