@@ -4,4 +4,5 @@ package = Mentoring
 version = 7.x-1.0
 dependencies[] = mentoring
 dependencies[] = mentoring_block
+dependencies[] = mentoring_mail
 features[features_api][] = api:2

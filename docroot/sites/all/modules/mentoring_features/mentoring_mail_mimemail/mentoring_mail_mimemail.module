@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Mentoring: Mail: Mimemail feature.
+ */
+
+include_once 'mentoring_mail_mimemail.features.inc';

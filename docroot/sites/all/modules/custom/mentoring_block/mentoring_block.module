@@ -125,20 +125,19 @@ function mentoring_block_block_view_search_form_alter(&$data, $block) {
  * Implements hook_libraries_info().
  */
 function mentoring_block_libraries_info() {
-  return [
-    'PHPExcel' => [
-      'name' => 'PHPExcel',
-      'vendor url' => 'http://phpexcel.codeplex.com/',
-      'download url' => 'https://github.com/PHPOffice/PHPExcel',
-      'version callback' => 'mentoring_block_get_library_version',
-      'path' => 'Classes',
-      'files' => [
-        'php' => [
-          'PHPExcel.php',
-        ],
+  $libraries['PHPExcel'] = [
+    'name' => 'PHPExcel',
+    'vendor url' => 'http://phpexcel.codeplex.com/',
+    'download url' => 'https://github.com/PHPOffice/PHPExcel',
+    'version callback' => 'mentoring_block_get_library_version',
+    'path' => 'Classes',
+    'files' => [
+      'php' => [
+        'PHPExcel.php',
       ],
     ],
   ];
+  return $libraries;
 }
 
 /**
