@@ -1,0 +1,115 @@
+<?php
+/**
+ * @file
+ * Contains mentoring_mail module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function mentoring_mail_menu() {
+  $items['mail/simple-form'] = [
+    'title' => 'Sending simple mail on form submit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_mail_simple_form'],
+    'access callback' => TRUE,
+    'file' => 'inc/mentoring_mail.forms.inc',
+  ];
+  $items['mail/attachment-form'] = [
+    'title' => 'Mail form with attachment',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_mail_attachment_form'],
+    'access arguments' => ['access content'],
+    'file' => 'inc/mentoring_mail.forms.inc',
+  ];
+
+  return $items;
+}
+
+/**
+ * Implements hook_mail().
+ */
+function mentoring_mail_mail($key, &$message, $params) {
+
+  switch ($key) {
+    // Send a simple message from the contact form.
+    case 'mentoring_mail_simple_form':
+      $message['subject'] = t('E-mail sent from @site-name', ['@site-name' => variable_get('site_name', 'Mentoring Drupal')]);
+      $message['body'] = check_plain($params['message']);
+      break;
+
+    case 'mentoring_mail_attachment_form':
+      $message['subject'] = check_plain($params['subject']);
+      $message['body'] = $params['message']['value'];
+      if (isset($params['logo']) && $params['logo']) {
+        try {
+          $logo = file_load($params['logo']);
+          $message['logo_uri'] = $logo->uri;
+        }
+        catch (Exception $e) {
+          watchdog_exception('mentoring_mail', $e);
+        }
+      }
+
+      // Adding our attachment array.
+      if (isset($message['logo_uri'])) {
+        $message['params']['attachments'][] = $logo;
+      }
+
+      $variables = [
+        'module' => basename(__FILE__, '.module'),
+        'key' => $key,
+        'recipient' => $message['to'],
+        'subject' => $message['subject'],
+        'body' => $message['body'],
+        'message' => $message,
+      ];
+
+      $html = theme('mimemail_message__' . $key, $variables);
+
+      if ($html) {
+        require_once DRUPAL_ROOT . '/sites/all/libraries/mpdf/mpdf.php';
+
+        $pdf_name = 'mail' . time() . '.pdf';
+        $pdf_uri = 'public://tmp/' . $pdf_name;
+        if ($wrapper = file_stream_wrapper_get_instance_by_uri($pdf_uri)) {
+          $pdf_path = $wrapper->realpath();
+        }
+        try {
+          $mpdf = new mPDF('utf-8');
+          $mpdf->WriteHTML($html);
+          $mpdf->Output($pdf_path);
+        }
+        catch (Exception $e) {
+          watchdog_exception('mentoring_mail', $e);
+        }
+
+        if ($pdf = file_get_contents($pdf_uri)) {
+          $message['params']['attachments'][] = [
+            'filecontent' => $pdf,
+            'filename' => $pdf_name,
+            'filemime' => 'application/pdf',
+          ];
+        }
+      }
+
+      break;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function mentoring_mail_form_mentoring_mail_attachment_form_alter(&$form, &$form_state) {
+  $form['params']['message']['#after_build'][] = 'mentoring_mail_hide_text_format';
+}
+
+/**
+ * Helper for hiding text format.
+ */
+function mentoring_mail_hide_text_format(&$form) {
+  if (isset($form['format'])) {
+    $form['format']['#access'] = FALSE;
+  }
+  return $form;
+}
