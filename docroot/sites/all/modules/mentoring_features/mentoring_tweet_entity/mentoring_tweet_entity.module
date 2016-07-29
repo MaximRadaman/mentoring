@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Mentoring: Tweet Entity feature.
+ */
+
+include_once 'mentoring_tweet_entity.features.inc';
