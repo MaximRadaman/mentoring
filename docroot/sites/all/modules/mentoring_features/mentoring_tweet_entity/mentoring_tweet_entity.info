@@ -1,0 +1,13 @@
+name = Mentoring: Tweet Entity
+core = 7.x
+package = Mentoring
+version = 7.x-1.0
+dependencies[] = entity
+dependencies[] = features
+dependencies[] = mentoring_tweet
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[user_permission][] = administer mentoring tweets
+features[views_view][] = tweets
+features_exclude[dependencies][ctools] = ctools

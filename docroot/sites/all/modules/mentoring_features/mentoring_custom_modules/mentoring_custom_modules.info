@@ -5,4 +5,5 @@ version = 7.x-1.0
 dependencies[] = mentoring
 dependencies[] = mentoring_block
 dependencies[] = mentoring_mail
+dependencies[] = mentoring_tweet
 features[features_api][] = api:2
