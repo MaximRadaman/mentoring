@@ -1,0 +1,12 @@
+name = Mentoring Tweet Entity
+description = Creating custom tweet entity
+core = 7.x
+
+package = Mentoring
+
+dependencies[] = entity
+
+files[] = inc/MentoringTweetEntity.php
+files[] = inc/MentoringTweetEntityAPIController.php
+files[] = inc/MentoringTweetUIController.php
+files[] = inc/MentoringTweetsMetadataController.php

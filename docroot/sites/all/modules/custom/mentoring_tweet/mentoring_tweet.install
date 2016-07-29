@@ -1,0 +1,88 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for mentoring tweets module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function mentoring_tweet_schema() {
+  $schema['mentoring_tweet'] = [
+    'description' => 'The base table for mentoring tweets.',
+    'fields' => [
+      'tweet_id' => [
+        'description' => 'The primary identifier for a mentoring tweets',
+        'type'        => 'serial',
+        'size'        => 'big',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+      ],
+      'tweet_text' => [
+        'description' => 'Tweet message',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => TRUE,
+      ],
+      'tweet_hashtag_name' => [
+        'description' => 'Tweet hash tag name',
+        'type'        => 'varchar',
+        'length'      => 30,
+        'not null'    => TRUE,
+      ],
+      'tweet_lang'    => [
+        'description' => 'The Unix timestamp when the data was created.',
+        'type'        => 'varchar',
+        'length'      => 5,
+        'not null'    => TRUE,
+      ],
+      'tweet_uid'     => array(
+        'description' => 'Twitter user id',
+        'type'        => 'int',
+        'size'        => 'big',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+      ),
+      'tweet_uscreen_name' => [
+        'description' => 'Tweet user screen name',
+        'type'        => 'varchar',
+        'length'      => 30,
+        'not null'    => TRUE,
+      ],
+      'tweet_created' => [
+        'description' => 'The Unix timestamp when the data was created.',
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ],
+    ],
+    'indexes' => [
+      'mentoring_tweet_uid'  => ['tweet_uid'],
+      'mentoring_tweet_hashtag_name' => ['tweet_hashtag_name'],
+      'mentoring_tweet_uscreen_name'  => ['tweet_uscreen_name'],
+      'mentoring_tweet_created'  => ['tweet_created'],
+    ],
+    'primary key' => ['tweet_id'],
+  ];
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function mentoring_tweet_uninstall() {
+  // Delete fields.
+  field_attach_delete_bundle('mentoring_tweet', 'mentoring_tweet');
+
+  // Delete instances.
+  db_delete('field_config_instance')->condition('entity_type', 'mentoring_tweet')->execute();
+
+  $result = db_select('variable', 'v')
+    ->fields('v', array('name'))
+    ->condition('name', 'mentoring_tweet_%', 'LIKE')
+    ->execute();
+
+  foreach ($result as $row) {
+    variable_del($row->name);
+  }
+}

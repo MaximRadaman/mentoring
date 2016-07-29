@@ -1,0 +1,263 @@
+<?php
+/**
+ * @file
+ * Custom entity creation module.
+ */
+
+define('MENTORING_TWEET_PATH', 'mentoring-tweet');
+
+/**
+ * Implements hook_entity_info().
+ */
+function mentoring_tweet_entity_info() {
+  $entities['mentoring_tweet'] = [
+    'label' => t('Mentoring tweet Entity'),
+    'entity class' => 'MentoringTweetEntity',
+    'controller class' => 'MentoringTweetEntityAPIController',
+    'base table' => 'mentoring_tweet',
+    'fieldable' => TRUE,
+    'bundles' => [
+      'mentoring_tweet' => [
+        'label' => t('Mentoring tweet'),
+        'admin' => [
+          'path' => 'admin/content/' . MENTORING_TWEET_PATH,
+        ],
+      ],
+    ],
+    'entity keys' => [
+      'id' => 'tweet_id',
+    ],
+    'label callback' => 'entity_class_label',
+    'view modes' => [
+      'time_line' => [
+        'label' => t('Timeline'),
+        'custom settings' => FALSE,
+      ],
+      'full' => [
+        'label' => t('Full'),
+        'custom settings' => FALSE,
+      ],
+    ],
+    'access callback' => 'mentoring_tweet_access',
+    'uri callback' => 'entity_class_uri',
+    'admin ui' => [
+      'menu wildcard' => '%mentoring_tweet',
+      'path' => 'admin/content/' . MENTORING_TWEET_PATH,
+      'controller class' => 'MentoringTweetUIController',
+      'file' => 'inc/mentoring_tweet.admin.inc',
+    ],
+    'module' => 'mentoring_tweet',
+    'metadata controller class' => 'MentoringTweetsMetadataController',
+    'views controller class' => 'EntityDefaultViewsController',
+    'load hook' => 'mentoring_tweets_load',
+  ];
+  return $entities;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function mentoring_tweet_menu() {
+  $items[MENTORING_TWEET_PATH . '/%mentoring_tweet'] = [
+    'title' => 'Mentoring tweet',
+    'page callback' => 'mentoring_tweet_view_page',
+    'page arguments' => [1],
+    'access arguments' => ['access content'],
+  ];
+  $items['admin/content/' . MENTORING_TWEET_PATH . '/hashtag'] = [
+    'title' => 'Parse hashtag',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['mentoring_tweet_hashtag_form'],
+    'access arguments' => ['administer mentoring tweets'],
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inc/mentoring_tweet.admin.inc',
+  ];
+  return $items;
+}
+
+/**
+ * Page callback for mentoring_tweet_view_page.
+ */
+function mentoring_tweet_view_page($mentoring_tweet) {
+  if (empty($mentoring_tweet)) {
+    return t("Sorry ...");
+  }
+
+  $output = entity_view('mentoring_tweet', [$mentoring_tweet]);
+
+  return $output;
+}
+
+/**
+ * Implements hook_load().
+ *
+ * Load Mentoring tweet Entity by ID.
+ */
+function mentoring_tweet_load($mentoring_tweet_ids, $reset = FALSE) {
+  if (empty($mentoring_tweet_ids)) {
+    return FALSE;
+  }
+  $mentoring_tweets = mentoring_tweet_load_multiple([$mentoring_tweet_ids], [], $reset);
+  return $mentoring_tweets ? reset($mentoring_tweets) : FALSE;
+}
+
+/**
+ * Loads multiple tweets by ID or based on a set of matching conditions.
+ */
+function mentoring_tweet_load_multiple($mentoring_tweet_ids = [], $conditions = [], $reset = FALSE) {
+  if (empty($mentoring_tweet_ids) && empty($conditions)) {
+    return [];
+  }
+  return entity_load('mentoring_tweet', $mentoring_tweet_ids, $conditions, $reset);
+}
+
+/**
+ * Determines whether the given user has access to a mentoring tweet.
+ */
+function mentoring_tweet_access($op, $mentoring_tweet = NULL, $account = NULL) {
+  if (user_access('administer mentoring tweets', $account)) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_permission.
+ */
+function mentoring_tweet_permission() {
+  $perms = array(
+    'administer mentoring tweets' => array(
+      'title' => t('Administer mentoring tweets'),
+    ),
+  );
+
+  return $perms;
+}
+
+/**
+ * Implements hook_cron().
+ */
+function mentoring_tweet_cron() {
+  if (!$mentoring_tweet_hashtag = variable_get('mentoring_tweet_hashtag')) {
+    return FALSE;
+  }
+
+  $interval = variable_get('mentoring_tweet_cron_interval', 60*60);
+  if (time() >= variable_get('mentoring_tweet_cron_next_execution', 0)) {
+    mentoring_tweet_create_tweets_by_hashtag($mentoring_tweet_hashtag);
+    variable_set('mentoring_tweet_cron_next_execution', time() + $interval);
+  }
+}
+
+/**
+ * Helper.
+ */
+function mentoring_tweet_create_tweets_by_hashtag($hashtag) {
+  $tweets = mentoring_tweet_tweets_by_hashtag($hashtag);
+  if (empty($tweets)) {
+    return FALSE;
+  }
+
+  foreach ($tweets as $tweet) {
+    $parameters = [
+      'tweet_id' => $tweet->id,
+      'tweet_text' => check_plain($tweet->text),
+      'tweet_hashtag_name' => variable_get('mentoring_tweet_hashtag'),
+      'tweet_uscreen_name' => check_plain($tweet->user->screen_name),
+      'tweet_lang' => $tweet->lang,
+      'tweet_uid' => $tweet->user->id,
+      'tweet_uscreen_name' => $tweet->user->screen_name,
+      'tweet_created' => strtotime($tweet->created_at),
+    ];
+    try {
+      $mentoring_tweet = entity_create('mentoring_tweet', $parameters);
+      $mentoring_tweet->save();
+    }
+    catch (Exception $e) {
+      watchdog_exception('mentoring_tweet', $e);
+    }
+  }
+}
+
+/**
+ * Get tweets by hastag_name.
+ */
+function mentoring_tweet_tweets_by_hashtag($hashtag_name) {
+  if (empty($hashtag_name)) {
+    return FALSE;
+  }
+
+  // Load twitteroauth library.
+  $library = libraries_load('twitteroauth');
+  if (!$library['loaded']) {
+    drupal_set_message(t("Couldn't load the twitteroauth library."), 'error');
+    return FALSE;
+  }
+
+  // Search options.
+  if ($hashtag_name != variable_get('mentoring_tweet_hashtag_parsing', '')) {
+    variable_set('mentoring_tweet_since_id', 0);
+  }
+  $parameters = [
+    'q' => '#' . $hashtag_name,
+    'count' => variable_get('mentoring_tweet_tweets_per_run', 100),
+    'since_id' => variable_get('mentoring_tweet_since_id', 0),
+  ];
+
+  $consumer_key = variable_get('mentoring_tweet_consumer_key');
+  $consumer_secret = variable_get('mentoring_tweet_consumer_secret');
+  $access_token = variable_get('mentoring_tweet_access_token');
+  $access_token_secret = variable_get('mentoring_tweet_access_token_secret');
+
+  // Connect to twitter and search tweets by hashtag.
+  try {
+    $connection = new \Abraham\TwitterOAuth\TwitterOAuth($consumer_key, $consumer_secret, $access_token, $access_token_secret);
+    $search_results = $connection->get("search/tweets", $parameters);
+  }
+  catch (Exception $e) {
+    watchdog_exception('mentoring_tweet', $e);
+  }
+
+  if (!isset($search_results->statuses) || empty($search_results->statuses)) {
+    return FALSE;
+  }
+
+  // Latest tweet from a group.
+  $latest_tweet = array_shift($search_results->statuses);
+
+  variable_set('mentoring_tweet_hashtag_parsing', variable_get('mentoring_tweet_hashtag'));
+  variable_set('mentoring_tweet_since_id', $latest_tweet->id);
+
+  return $search_results->statuses;
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function mentoring_tweet_libraries_info() {
+  $libraries['twitteroauth'] = [
+    'name' => 'twitteroauth',
+    'vendor url' => 'https://twitteroauth.com/',
+    'download url' => 'https://github.com/abraham/twitteroauth.git',
+    'version callback' => 'mentoring_tweet_get_twitteroauth_version',
+    'files' => [
+      'php' => [
+        'autoload.php',
+        'src/TwitterOAuth.php',
+      ],
+    ],
+//    'xautoload' => function ($api) {
+//      $api->add('Abraham\TwitterOAuth\\', 'src');
+//    },
+  ];
+  return $libraries;
+}
+
+/**
+ * Return twitteroauth library version.
+ *
+ * @see https://packagist.org/packages/abraham/twitteroauth
+ */
+function mentoring_tweet_get_twitteroauth_version() {
+  return '0.6.4';
+}
